@@ -1,0 +1,3 @@
+[submodule "external/svgpp"]
+	path = external/svgpp
+	url = git@github.com:svgpp/svgpp.git

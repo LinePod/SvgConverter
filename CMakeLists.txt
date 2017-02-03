@@ -4,7 +4,7 @@ project(svg_converter)
 find_package(Boost REQUIRED)
 find_package(LibXml2 REQUIRED)
 
-set(SOURCE_FILES main.cpp)
+set(SOURCE_FILES main.cpp xml.cpp)
 
 add_executable(svg_converter ${SOURCE_FILES})
 set_target_properties(svg_converter PROPERTIES

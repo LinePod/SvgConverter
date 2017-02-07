@@ -3,7 +3,7 @@
 
 #include <boost/numeric/ublas/matrix.hpp>
 
-typedef boost::numeric::ublas::c_matrix<double, 3, 3> matrix_t;
+using matrix_t = boost::numeric::ublas::c_matrix<double, 3, 3>;
 
 /**
  * Base svg++ context used for structural elements like <svg> or <g>.

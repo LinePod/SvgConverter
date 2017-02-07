@@ -9,7 +9,7 @@
 struct ContextFactories {
     template<class ParentContext, class ElementTag>
     struct apply {
-        typedef svgpp::factory::context::on_stack<BaseContext> type;
+        using type = svgpp::factory::context::on_stack<BaseContext>;
     };
 };
 

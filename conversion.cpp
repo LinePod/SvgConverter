@@ -10,11 +10,9 @@
 #include "conversion/context/base.h"
 #include "conversion/context/factories.h"
 
-typedef boost::mpl::set<
-        // SVG Structural Elements
+using processed_elements_t = boost::mpl::set<
         svgpp::tag::element::svg,
-        svgpp::tag::element::g //,
-        // SVG Shape Elements
+        svgpp::tag::element::g
 //        svgpp::tag::element::circle,
 //        svgpp::tag::element::ellipse,
 //        svgpp::tag::element::line,
@@ -22,11 +20,11 @@ typedef boost::mpl::set<
 //        svgpp::tag::element::polygon,
 //        svgpp::tag::element::polyline,
 //        svgpp::tag::element::rect
-    >::type processed_elements_t;
+>::type;
 
-typedef boost::mpl::set<
+using processed_attributes_t = boost::mpl::set<
         svgpp::tag::attribute::transform
-    >::type processed_attributes_t;
+>::type;
 
 std::string convert(XmlDocument& svgDoc) {
     BaseContext context;

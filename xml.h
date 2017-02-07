@@ -22,7 +22,7 @@ public:
     explicit XmlDocument(const char* filename);
     ~XmlDocument();
 
-    xmlNodePtr root() const;
+    xmlNodePtr root();
 };
 
 

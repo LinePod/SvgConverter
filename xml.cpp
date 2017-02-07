@@ -12,7 +12,7 @@ XmlDocument::~XmlDocument() {
     doc_ = nullptr;
 }
 
-xmlNodePtr XmlDocument::root() const {
+xmlNodePtr XmlDocument::root() {
     return xmlDocGetRootElement(doc_);
 }
 

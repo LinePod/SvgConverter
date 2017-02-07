@@ -4,6 +4,7 @@
 #include <svgpp/svgpp.hpp>
 #include <libxml/parser.h>
 
+#include "conversion.h"
 #include "xml.h"
 
 XmlDocument loadSvg(const char* filename) {
@@ -24,6 +25,7 @@ int main(int argc, char* argv[]) {
     LIBXML_TEST_VERSION
 
     auto doc = loadSvg(argv[1]);
+    convert(doc);
 
     return 0;
 }

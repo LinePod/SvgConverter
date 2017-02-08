@@ -5,11 +5,11 @@ find_package(Boost REQUIRED)
 find_package(LibXml2 REQUIRED)
 
 set(SOURCE_FILES
-        main.cpp
-        xml.cpp
-        conversion.cpp
-        conversion/context/base.cpp
-        conversion/context/shape.cpp)
+        src/main.cpp
+        src/xml.cpp
+        src/conversion.cpp
+        src/conversion/context/base.cpp
+        src/conversion/context/shape.cpp)
 
 add_executable(svg_converter ${SOURCE_FILES})
 set_target_properties(svg_converter PROPERTIES

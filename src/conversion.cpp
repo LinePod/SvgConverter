@@ -1,19 +1,20 @@
-#include <iostream>
+#include "conversion.h"
 
+#include <libxml/parser.h>
+
+#include <iostream>
 #include <boost/numeric/ublas/assignment.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
-#include <libxml/parser.h>
 #include <svgpp/policy/xml/libxml2.hpp>
 #include <svgpp/svgpp.hpp>
 
-#include "conversion.h"
 #include "conversion/context/base.h"
 #include "conversion/context/factories.h"
 
 /**
  * List of elements which should be processed.
  */
-using processed_elements_t = boost::mpl::set<
+using processed_elements_t = boost::mpl::set<  // NOLINT
         svgpp::tag::element::svg,
         svgpp::tag::element::g,
         svgpp::tag::element::circle,
@@ -44,7 +45,7 @@ using processed_attributes_t = boost::mpl::insert<
  */
 using path_policy_t = svgpp::policy::path::minimal;
 
-std::string convert(XmlDocument& svgDoc) {
+std::string convert(XmlDocument& svgDoc) {  // NOLINT
     BaseContext context;
     svgpp::document_traversal<
             svgpp::processed_elements<processed_elements_t>,

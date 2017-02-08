@@ -1,24 +1,25 @@
 #ifndef SVG_CONVERTER_XML_H
 #define SVG_CONVERTER_XML_H
 
-#include <stdexcept>
-#include <string>
 #include <libxml/xmlerror.h>
 #include <libxml/parser.h>
 
+#include <stdexcept>
+#include <string>
+
 class XmlLoadError : public std::runtime_error {
-private:
+ private:
     xmlError error_;
 
-public:
+ public:
     explicit XmlLoadError(xmlErrorPtr errorPtr);
 };
 
 class XmlDocument {
-private:
+ private:
     xmlDocPtr doc_;
 
-public:
+ public:
     explicit XmlDocument(const char* filename);
     ~XmlDocument();
 
@@ -26,4 +27,4 @@ public:
 };
 
 
-#endif //SVG_CONVERTER_XML_H
+#endif  // SVG_CONVERTER_XML_H

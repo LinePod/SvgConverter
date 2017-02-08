@@ -3,19 +3,20 @@
 
 #include <boost/numeric/ublas/vector.hpp>
 #include <svgpp/definitions.hpp>
-#include "base.h"
+
+#include "./base.h"
 
 using point_t = boost::numeric::ublas::c_vector<double, 2>;
 
 class ShapeContext : public BaseContext {
-private:
+ private:
     /**
      * Creates a point and transforms it to global space.
      */
     point_t to_global_point(double x, double y);
 
-public:
-    ShapeContext(const BaseContext& parent);
+ public:
+    explicit ShapeContext(const BaseContext& parent);
 
     void path_move_to(double x, double y, svgpp::tag::coordinate::absolute);
     void path_line_to(double x, double y, svgpp::tag::coordinate::absolute);
@@ -28,4 +29,4 @@ public:
     void path_exit();
 };
 
-#endif //SVG_CONVERTER_SHAPE_H
+#endif  // SVG_CONVERTER_SHAPE_H

@@ -11,10 +11,10 @@ using matrix_t = boost::numeric::ublas::c_matrix<double, 3, 3>;
  * Also used as a base class for all other context types.
  */
 class BaseContext {
-protected:
+ protected:
     matrix_t transform_;
 
-public:
+ public:
     BaseContext();
     BaseContext(const BaseContext& parent);
 
@@ -23,4 +23,4 @@ public:
     void transform_matrix(const boost::array<double, 6>& numbers);
 };
 
-#endif //SVG_CONVERTER_BASE_H
+#endif  // SVG_CONVERTER_BASE_H

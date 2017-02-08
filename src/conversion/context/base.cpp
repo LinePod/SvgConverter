@@ -1,5 +1,6 @@
-#include <boost/numeric/ublas/assignment.hpp>
 #include "base.h"
+
+#include <boost/numeric/ublas/assignment.hpp>
 
 BaseContext::BaseContext() {
     transform_ = boost::numeric::ublas::identity_matrix<double>(3);

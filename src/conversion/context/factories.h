@@ -2,7 +2,9 @@
 #define SVG_CONVERTER_FACTORY_H
 
 #include <type_traits>
+
 #include <svgpp/traits/element_groups.hpp>
+
 #include "base.h"
 #include "shape.h"
 
@@ -33,4 +35,4 @@ struct ContextFactories::apply<
     using type = svgpp::factory::context::on_stack<ShapeContext>;
 };
 
-#endif //SVG_CONVERTER_FACTORY_H
+#endif  // SVG_CONVERTER_FACTORY_H

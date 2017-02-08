@@ -1,8 +1,8 @@
+#include <libxml/parser.h>
+
 #include <cstdlib>
 #include <iostream>
-
 #include <svgpp/svgpp.hpp>
-#include <libxml/parser.h>
 
 #include "conversion.h"
 #include "xml.h"

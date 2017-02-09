@@ -17,6 +17,17 @@ set_target_properties(svg_converter PROPERTIES
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS OFF)
 
+if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+    target_compile_options(svg_converter
+            PUBLIC -Weverything
+            PUBLIC -Wno-c++98-compat)
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+    target_compile_options(svg_converter
+            PUBLIC -Wall
+            PUBLIC -Wpedantic
+            PUBLIC -Wextra)
+endif()
+
 # SYSTEM tells the compiler to treat the includes as system includes,
 # suppressing the warnings in svg++.
 target_include_directories(svg_converter SYSTEM

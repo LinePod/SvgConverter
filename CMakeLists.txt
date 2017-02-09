@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.6)
 project(svg_converter)
 
 find_package(Boost REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(LibXml2 REQUIRED)
 
 set(SOURCE_FILES
@@ -32,6 +33,7 @@ endif()
 # suppressing the warnings in svg++.
 target_include_directories(svg_converter SYSTEM
         PUBLIC ${Boost_INCLUDE_DIRS}
+        PUBLIC ${Eigen3_INCLUDE_DIR}
         PUBLIC ${LIBXML2_INCLUDE_DIR}
         PUBLIC external/svgpp/include)
 

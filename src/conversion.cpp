@@ -1,8 +1,5 @@
 #include "conversion.h"
 
-#include <iostream>
-#include <boost/numeric/ublas/assignment.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
 #include <svgpp/policy/xml/libxml2.hpp>
 #include <svgpp/svgpp.hpp>
 

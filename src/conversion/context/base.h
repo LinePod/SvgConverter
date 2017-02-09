@@ -1,9 +1,11 @@
 #ifndef SVG_CONVERTER_BASE_H
 #define SVG_CONVERTER_BASE_H
 
-#include <boost/numeric/ublas/matrix.hpp>
+#include <eigen3/Eigen/Geometry>
 
-using matrix_t = boost::numeric::ublas::c_matrix<double, 3, 3>;
+#include <boost/array.hpp>
+
+using Transform = Eigen::AffineCompact2d;
 
 /**
  * Base svg++ context used for structural elements like <svg> or <g>.
@@ -12,7 +14,7 @@ using matrix_t = boost::numeric::ublas::c_matrix<double, 3, 3>;
  */
 class BaseContext {
  protected:
-    matrix_t transform_;
+    Transform transform_;
 
  public:
     BaseContext();

@@ -2,17 +2,8 @@
 
 #include <iostream>
 
-#include <boost/numeric/ublas/assignment.hpp>
-#include <boost/numeric/ublas/io.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
-
-using point3_t = boost::numeric::ublas::c_vector<double, 3>;
-
-point_t ShapeContext::to_global_point(double x, double y) {
-    point3_t point3;
-    point3 <<= x, y, 1;
-    point3 = boost::numeric::ublas::prod(transform_, point3);
-    return boost::numeric::ublas::subrange(point3, 0, 2);
+Point ShapeContext::to_global_point(double x, double y) {
+    return transform_ * Point{x, y};
 }
 
 ShapeContext::ShapeContext(const BaseContext& parent) : BaseContext(parent) {

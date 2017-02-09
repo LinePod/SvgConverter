@@ -1,19 +1,18 @@
 #ifndef SVG_CONVERTER_SHAPE_H
 #define SVG_CONVERTER_SHAPE_H
 
-#include <boost/numeric/ublas/vector.hpp>
 #include <svgpp/definitions.hpp>
 
 #include "./base.h"
 
-using point_t = boost::numeric::ublas::c_vector<double, 2>;
+using Point = Eigen::Vector2d;
 
 class ShapeContext : public BaseContext {
  private:
     /**
      * Creates a point and transforms it to global space.
      */
-    point_t to_global_point(double x, double y);
+    Point to_global_point(double x, double y);
 
  public:
     explicit ShapeContext(const BaseContext& parent);

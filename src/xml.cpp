@@ -1,21 +1,30 @@
 #include "xml.h"
 
-XmlDocument::XmlDocument(const char* filename)
-        : doc_(xmlParseFile(filename)) {
-    if (doc_ == nullptr) {
-        throw XmlLoadError(xmlGetLastError());
+void XmlDeleter::operator()(xmlDocPtr doc) const {
+    xmlFreeDoc(doc);
+}
+
+XmlLoadError::XmlLoadError(xmlErrorPtr errorPtr) {
+    xmlCopyError(errorPtr, &error_);
+}
+
+XmlLoadError::~XmlLoadError() {
+    xmlResetError(&error_);
+}
+
+const char* XmlLoadError::what() const noexcept {
+    return error_.message;
+}
+
+ManagedXmlDoc loadDocument(const char* filename) {
+    ManagedXmlDoc doc{xmlParseFile(filename)};
+    if (doc == nullptr) {
+        throw XmlLoadError{xmlGetLastError()};
     }
+
+    return doc;
 }
 
-XmlDocument::~XmlDocument() {
-    xmlFreeDoc(doc_);
-    doc_ = nullptr;
-}
-
-xmlNodePtr XmlDocument::root() {
-    return xmlDocGetRootElement(doc_);
-}
-
-XmlLoadError::XmlLoadError(xmlErrorPtr errorPtr)
-        : std::runtime_error(std::string(errorPtr->message))  {
+xmlNodePtr getRoot(const ManagedXmlDoc& doc) {
+    return xmlDocGetRootElement(doc.get());
 }

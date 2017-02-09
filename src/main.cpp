@@ -7,14 +7,7 @@
 #include "conversion.h"
 #include "xml.h"
 
-XmlDocument loadSvg(const char* filename) {
-    try {
-        return XmlDocument(filename);
-    } catch (const XmlLoadError& err) {
-        std::cerr << "Failed to load svg: " << err.what() << '\n';
-        std::exit(1);
-    }
-}
+ManagedXmlDoc loadSvg(const char* filename);
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
@@ -28,4 +21,13 @@ int main(int argc, char* argv[]) {
     convert(doc);
 
     return 0;
+}
+
+ManagedXmlDoc loadSvg(const char* filename) {
+    try {
+        return loadDocument(filename);
+    } catch (const XmlLoadError& err) {
+        std::cerr << "Failed to load svg: " << err.what() << '\n';
+        std::exit(1);
+    }
 }

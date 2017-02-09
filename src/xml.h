@@ -4,27 +4,39 @@
 #include <libxml/xmlerror.h>
 #include <libxml/parser.h>
 
+#include <memory>
 #include <stdexcept>
 #include <string>
 
-class XmlLoadError : public std::runtime_error {
+/**
+ * `std::unique_ptr` Deleter for libxml2 elements.
+ */
+struct XmlDeleter {
+    void operator()(xmlDocPtr doc) const;
+};
+
+using ManagedXmlDoc = std::unique_ptr<xmlDoc, XmlDeleter>;
+
+class XmlLoadError : public std::exception {
  private:
     xmlError error_;
 
  public:
     explicit XmlLoadError(xmlErrorPtr errorPtr);
+    ~XmlLoadError() override;
+
+    // xmlError contains allocated memory (message, etc.), therefore
+    // this exception should not be copyable.
+    XmlLoadError(const XmlLoadError&) = delete;
+    XmlLoadError(XmlLoadError&&) = default;
+    XmlLoadError& operator=(const XmlLoadError&) = delete;
+    XmlLoadError& operator=(XmlLoadError&&) = default;
+
+    const char* what() const noexcept override;
 };
 
-class XmlDocument {
- private:
-    xmlDocPtr doc_;
+ManagedXmlDoc loadDocument(const char* filename);
 
- public:
-    explicit XmlDocument(const char* filename);
-    ~XmlDocument();
-
-    xmlNodePtr root();
-};
-
+xmlNodePtr getRoot(const ManagedXmlDoc& doc);
 
 #endif  // SVG_CONVERTER_XML_H

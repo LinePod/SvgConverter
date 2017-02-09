@@ -1,7 +1,5 @@
 #include "conversion.h"
 
-#include <libxml/parser.h>
-
 #include <iostream>
 #include <boost/numeric/ublas/assignment.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
@@ -45,13 +43,13 @@ using processed_attributes_t = boost::mpl::insert<
  */
 using path_policy_t = svgpp::policy::path::minimal;
 
-std::string convert(XmlDocument& svgDoc) {  // NOLINT
+std::string convert(const ManagedXmlDoc& svgDoc) {
     BaseContext context;
     svgpp::document_traversal<
             svgpp::processed_elements<processed_elements_t>,
             svgpp::processed_attributes<processed_attributes_t>,
             svgpp::context_factories<ContextFactories>,
             svgpp::path_policy<path_policy_t>
-    >::load_document(svgDoc.root(), context);
+    >::load_document(getRoot(svgDoc), context);
     return {};
 }

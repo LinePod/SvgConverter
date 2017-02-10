@@ -5,29 +5,35 @@
 
 #include "conversion/context/base.h"
 #include "conversion/context/factories.h"
+#include "utility.h"
+
 
 /**
  * List of elements which should be processed.
  */
-using processed_elements_t = boost::mpl::set<  // NOLINT
-        svgpp::tag::element::svg,
-        svgpp::tag::element::g,
-        svgpp::tag::element::circle,
-        svgpp::tag::element::ellipse,
-        svgpp::tag::element::line,
-        svgpp::tag::element::path,
-        svgpp::tag::element::polygon,
-        svgpp::tag::element::polyline,
-        svgpp::tag::element::rect
->::type;
+using processed_elements_t = Concat<
+        // Elements describing shapes
+        svgpp::traits::shape_elements,
+
+        // Supported structural elements
+        boost::mpl::set<
+            svgpp::tag::element::svg,
+            svgpp::tag::element::g
+        >
+    >;
 
 /**
  * List of attributes which should be processed.
  */
-using processed_attributes_t = boost::mpl::insert<
+using processed_attributes_t = Concat<
+        // Attributes describing the shape of shape elements
         svgpp::traits::shapes_attributes_by_element,
-        svgpp::tag::attribute::transform
->::type;
+
+        // Other attributes
+        boost::mpl::set<  // NOLINT not the stl set (no #include <set> needed)
+            svgpp::tag::attribute::transform
+        >
+    >;
 
 /**
  * Policy on how to handle paths (and other elements converted to paths).

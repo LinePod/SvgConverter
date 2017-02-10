@@ -41,7 +41,7 @@ using processed_attributes_t = Concat<
  * The `minimal` policy does all the conversions described at
  * http://svgpp.org/path.html#path-policy-concept. The conversion from arcs
  * to bézier curves is lossy. Because the silhouette can only plot arcs of
- * circles but not arcs a conversion would be necessary anyway. Can be
+ * circles but not ellipses a conversion would be necessary anyway. Can be
  * replaced with another conversion if artifacts start to appear.
  */
 using path_policy_t = svgpp::policy::path::minimal;

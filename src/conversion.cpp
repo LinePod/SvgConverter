@@ -11,7 +11,7 @@
 /**
  * List of elements which should be processed.
  */
-using processed_elements_t = Concat<
+using ProcessedElements = Concat<
         // Elements describing shapes
         svgpp::traits::shape_elements,
 
@@ -25,7 +25,7 @@ using processed_elements_t = Concat<
 /**
  * List of attributes which should be processed.
  */
-using processed_attributes_t = Concat<
+using ProcessedAttributes = Concat<
         // Attributes describing the shape of shape elements
         svgpp::traits::shapes_attributes_by_element,
 
@@ -44,15 +44,15 @@ using processed_attributes_t = Concat<
  * circles but not ellipses a conversion would be necessary anyway. Can be
  * replaced with another conversion if artifacts start to appear.
  */
-using path_policy_t = svgpp::policy::path::minimal;
+using PathPolicy = svgpp::policy::path::minimal;
 
 std::string convert(const ManagedXmlDoc& svgDoc) {
     BaseContext context;
     svgpp::document_traversal<
-            svgpp::processed_elements<processed_elements_t>,
-            svgpp::processed_attributes<processed_attributes_t>,
+            svgpp::processed_elements<ProcessedElements>,
+            svgpp::processed_attributes<ProcessedAttributes>,
             svgpp::context_factories<ContextFactories>,
-            svgpp::path_policy<path_policy_t>
+            svgpp::path_policy<PathPolicy>
     >::load_document(getRoot(svgDoc), context);
     return {};
 }

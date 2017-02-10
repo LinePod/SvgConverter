@@ -8,7 +8,7 @@
 #include "base.h"
 #include "shape.h"
 
-template<class ElementTag> constexpr bool is_shape_element_v =
+template<class ElementTag> constexpr bool is_shape_element =
         boost::mpl::has_key<svgpp::traits::shape_elements, ElementTag>::value;
 
 /**
@@ -31,7 +31,7 @@ template<class ElementTag>
 struct ContextFactories::apply<
         BaseContext,
         ElementTag,
-        std::enable_if_t<is_shape_element_v<ElementTag>>> {
+        std::enable_if_t<is_shape_element<ElementTag>>> {
     using type = svgpp::factory::context::on_stack<ShapeContext>;
 };
 

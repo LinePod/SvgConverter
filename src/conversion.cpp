@@ -3,8 +3,6 @@
 #include <svgpp/policy/xml/libxml2.hpp>
 #include <svgpp/svgpp.hpp>
 
-#include "conversion/context/base.h"
-#include "conversion/context/factories.h"
 #include "utility.h"
 
 
@@ -47,12 +45,5 @@ using ProcessedAttributes = Concat<
 using PathPolicy = svgpp::policy::path::minimal;
 
 std::string convert(const ManagedXmlDoc& svgDoc) {
-    BaseContext context;
-    svgpp::document_traversal<
-            svgpp::processed_elements<ProcessedElements>,
-            svgpp::processed_attributes<ProcessedAttributes>,
-            svgpp::context_factories<ContextFactories>,
-            svgpp::path_policy<PathPolicy>
-    >::load_document(getRoot(svgDoc), context);
     return {};
 }

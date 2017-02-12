@@ -10,7 +10,8 @@ set(SOURCE_FILES
         src/xml.cpp
         src/conversion.cpp
         src/conversion/context/base.cpp
-        src/conversion/context/shape.cpp)
+        src/conversion/context/shape.cpp
+        src/conversion/viewport.cpp)
 
 add_executable(svg_converter ${SOURCE_FILES})
 set_target_properties(svg_converter PROPERTIES

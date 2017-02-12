@@ -10,7 +10,8 @@ set(SOURCE_FILES
         src/xml.cpp
         src/conversion.cpp
         src/parsing/viewport.cpp
-        src/parsing/coordinate_system.cpp)
+        src/parsing/coordinate_system.cpp
+        src/parsing/context/graphical_element.cpp)
 
 add_executable(svg_converter ${SOURCE_FILES})
 set_target_properties(svg_converter PROPERTIES
@@ -21,7 +22,8 @@ set_target_properties(svg_converter PROPERTIES
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     target_compile_options(svg_converter
             PUBLIC -Weverything
-            PUBLIC -Wno-c++98-compat)
+            PUBLIC -Wno-c++98-compat
+            PUBLIC -Wno-padded)
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     target_compile_options(svg_converter
             PUBLIC -Wall

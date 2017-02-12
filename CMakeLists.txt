@@ -11,7 +11,8 @@ set(SOURCE_FILES
         src/conversion.cpp
         src/conversion/context/base.cpp
         src/conversion/context/shape.cpp
-        src/conversion/viewport.cpp)
+        src/conversion/viewport.cpp
+        src/conversion/coordinate_system.cpp)
 
 add_executable(svg_converter ${SOURCE_FILES})
 set_target_properties(svg_converter PROPERTIES

@@ -9,8 +9,8 @@ set(SOURCE_FILES
         src/main.cpp
         src/xml.cpp
         src/conversion.cpp
-        src/conversion/viewport.cpp
-        src/conversion/coordinate_system.cpp)
+        src/parsing/viewport.cpp
+        src/parsing/coordinate_system.cpp)
 
 add_executable(svg_converter ${SOURCE_FILES})
 set_target_properties(svg_converter PROPERTIES

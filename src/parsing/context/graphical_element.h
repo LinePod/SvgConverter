@@ -39,9 +39,8 @@ class GraphicsElementContext {
 
  protected:
     GraphicsElementContext(const Viewport& viewport,
-                  const CoordinateSystem& coordinate_system)
-            : viewport_{viewport}, coordinate_system_{coordinate_system} {
-    }
+                           const CoordinateSystem& coordinate_system)
+        : viewport_{viewport}, coordinate_system_{coordinate_system} {}
 
     /**
      * Creates a new instance from information supplied by a parent context.
@@ -49,11 +48,10 @@ class GraphicsElementContext {
      * The parent class must have accessible methods `inner_viewport()` and
      * `inner_coordinate_system()`.
      */
-    template<class ParentContext>
+    template <class ParentContext>
     explicit GraphicsElementContext(const ParentContext& parent)
-            : viewport_{parent.inner_viewport()},
-              coordinate_system_{parent.inner_coordinate_system()} {
-    }
+        : viewport_{parent.inner_viewport()},
+          coordinate_system_{parent.inner_coordinate_system()} {}
 
     /**
      * Accessor to the coordinate system of this element.
@@ -73,7 +71,7 @@ class GraphicsElementContext {
      *
      * Based on the viewport the element is in.
      */
-     const LengthFactory& length_factory() const;
+    const LengthFactory& length_factory() const;
 };
 
 #endif  // SVG_CONVERTER_LAYOUTCONTEXT_H

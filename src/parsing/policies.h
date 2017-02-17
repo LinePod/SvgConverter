@@ -10,7 +10,7 @@
  * disabled (viewport width and/or height of zero).
  */
 struct DocumentTraversalControlPolicy {
-    template<class Context>
+    template <class Context>
     static bool proceed_to_element_content(const Context&) {
         return true;
     }
@@ -19,11 +19,10 @@ struct DocumentTraversalControlPolicy {
         return !context.rendering_disabled();
     }
 
-    template<class Context>
+    template <class Context>
     static bool proceed_to_next_child(const Context&) {
         return true;
     }
 };
 
-
-#endif //SVG_CONVERTER_POLICIES_H
+#endif  // SVG_CONVERTER_POLICIES_H

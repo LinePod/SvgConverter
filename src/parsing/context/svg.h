@@ -24,13 +24,11 @@ class SvgContext : public GraphicsElementContext {
      * @param global_viewport Global viewport representing the available space.
      */
     explicit SvgContext(const Viewport& global_viewport)
-            : GraphicsElementContext(global_viewport, {}) {
-    }
+        : GraphicsElementContext(global_viewport, {}) {}
 
-    template<class ParentContext>
+    template <class ParentContext>
     explicit SvgContext(const ParentContext& parent)
-            : GraphicsElementContext(parent) {
-    }
+        : GraphicsElementContext(parent) {}
 
     /**
      * Method called by the `LayoutContext(const ParentContext&)` constructor.

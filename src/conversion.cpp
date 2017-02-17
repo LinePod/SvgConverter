@@ -5,33 +5,26 @@
 
 #include "utility.h"
 
-
 /**
  * List of elements which should be processed.
  */
 using ProcessedElements = Concat<
-        // Elements describing shapes
-        svgpp::traits::shape_elements,
+    // Elements describing shapes
+    svgpp::traits::shape_elements,
 
-        // Supported structural elements
-        boost::mpl::set<
-            svgpp::tag::element::svg,
-            svgpp::tag::element::g
-        >
-    >;
+    // Supported structural elements
+    boost::mpl::set<svgpp::tag::element::svg, svgpp::tag::element::g>>;
 
 /**
  * List of attributes which should be processed.
  */
 using ProcessedAttributes = Concat<
-        // Attributes describing the shape of shape elements
-        svgpp::traits::shapes_attributes_by_element,
+    // Attributes describing the shape of shape elements
+    svgpp::traits::shapes_attributes_by_element,
 
-        // Other attributes
-        boost::mpl::set<  // NOLINT not the stl set (no #include <set> needed)
-            svgpp::tag::attribute::transform
-        >
-    >;
+    // Other attributes
+    boost::mpl::set<  // NOLINT not the stl set (no #include <set> needed)
+        svgpp::tag::attribute::transform>>;
 
 /**
  * Policy on how to handle paths (and other elements converted to paths).
@@ -44,6 +37,4 @@ using ProcessedAttributes = Concat<
  */
 using PathPolicy = svgpp::policy::path::minimal;
 
-std::string convert(const ManagedXmlDoc& svgDoc) {
-    return {};
-}
+std::string convert(const ManagedXmlDoc& svgDoc) { return {}; }

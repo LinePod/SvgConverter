@@ -7,21 +7,19 @@
 
 namespace detail {
 
-template<class... Types>
+template <class... Types>
 struct Concat;
 
-template<class T>
+template <class T>
 struct Concat<T> {
     using type = T;
 };
 
-template<class T, class... Types>
+template <class T, class... Types>
 struct Concat<T, Types...> {
     using type = typename boost::mpl::fold<
-        T,
-        typename Concat<Types...>::type,
-        boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>
-    >::type;
+        T, typename Concat<Types...>::type,
+        boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>>::type;
 };
 
 }  // namespace detail
@@ -29,7 +27,7 @@ struct Concat<T, Types...> {
 /**
  * Concatenate a number of boost mpl sequences.
  */
-template<class... Types> using Concat =
-    typename detail::Concat<Types...>::type;
+template <class... Types>
+using Concat = typename detail::Concat<Types...>::type;
 
 #endif  // SVG_CONVERTER_UTILITY_H

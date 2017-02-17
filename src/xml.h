@@ -1,8 +1,8 @@
 #ifndef SVG_CONVERTER_XML_H
 #define SVG_CONVERTER_XML_H
 
-#include <libxml/xmlerror.h>
 #include <libxml/parser.h>
+#include <libxml/xmlerror.h>
 
 #include <memory>
 #include <stdexcept>

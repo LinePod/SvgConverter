@@ -1,20 +1,14 @@
 #include "xml.h"
 
-void XmlDeleter::operator()(xmlDocPtr doc) const {
-    xmlFreeDoc(doc);
-}
+void XmlDeleter::operator()(xmlDocPtr doc) const { xmlFreeDoc(doc); }
 
 XmlLoadError::XmlLoadError(xmlErrorPtr errorPtr) {
     xmlCopyError(errorPtr, &error_);
 }
 
-XmlLoadError::~XmlLoadError() {
-    xmlResetError(&error_);
-}
+XmlLoadError::~XmlLoadError() { xmlResetError(&error_); }
 
-const char* XmlLoadError::what() const noexcept {
-    return error_.message;
-}
+const char* XmlLoadError::what() const noexcept { return error_.message; }
 
 ManagedXmlDoc loadDocument(const char* filename) {
     ManagedXmlDoc doc{xmlParseFile(filename)};

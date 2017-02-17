@@ -1,5 +1,5 @@
-#ifndef SVG_CONVERTER_LAYOUTCONTEXT_H
-#define SVG_CONVERTER_LAYOUTCONTEXT_H
+#ifndef SVG_CONVERTER_GRAPHICSELEMENTCONTEXT_H
+#define SVG_CONVERTER_GRAPHICSELEMENTCONTEXT_H
 
 #include <boost/array.hpp>
 
@@ -74,4 +74,5 @@ class GraphicsElementContext {
     const LengthFactory& length_factory() const;
 };
 
-#endif  // SVG_CONVERTER_LAYOUTCONTEXT_H
+#endif  // SVG_CONVERTER_GRAPHICSELEMENTCONTEXT_H
+

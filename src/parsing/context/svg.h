@@ -3,7 +3,7 @@
 
 #include "../coordinate_system.h"
 #include "../viewport.h"
-#include "graphical_element.h"
+#include "graphics_element.h"
 
 /**
  * Context for parsing <svg> elements.
@@ -31,13 +31,13 @@ class SvgContext : public GraphicsElementContext {
         : GraphicsElementContext(parent) {}
 
     /**
-     * Method called by the `LayoutContext(const ParentContext&)` constructor.
+     * Used by the `GraphicsElementContext(const ParentContext&)` constructor.
      * @return Coordinate system for child elements.
      */
     const CoordinateSystem& inner_coordinate_system() const;
 
     /**
-     * Method called by the `LayoutContext(const ParentContext&)` constructor.
+     * Used by the `GraphicsElementContext(const ParentContext&)` constructor.
      * @return Viewport for child elements.
      */
     const Viewport& inner_viewport() const;

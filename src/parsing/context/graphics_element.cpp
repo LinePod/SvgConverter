@@ -1,4 +1,4 @@
-#include "graphical_element.h"
+#include "graphics_element.h"
 
 const CoordinateSystem& GraphicsElementContext::coordinate_system() const {
     return coordinate_system_;

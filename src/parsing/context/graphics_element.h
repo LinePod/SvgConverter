@@ -23,14 +23,6 @@
 class GraphicsElementContext {
  private:
     /**
-     * Viewport to which this element belongs.
-     *
-     * Usually established by the next <svg> ancestor. Equal to the global
-     * viewport for the outermost <svg> element.
-     */
-    const Viewport& viewport_;
-
-    /**
      * Coordinate system for this element.
      *
      * This includes transforms from the element itself.
@@ -38,6 +30,14 @@ class GraphicsElementContext {
     CoordinateSystem coordinate_system_;
 
  protected:
+    /**
+     * Viewport to which this element belongs.
+     *
+     * Usually established by the next <svg> ancestor. Equal to the global
+     * viewport for the outermost <svg> element.
+     */
+    const Viewport& viewport_;
+
     GraphicsElementContext(const Viewport& viewport,
                            const CoordinateSystem& coordinate_system)
         : viewport_{viewport}, coordinate_system_{coordinate_system} {}

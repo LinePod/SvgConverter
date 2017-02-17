@@ -12,7 +12,8 @@ set(SOURCE_FILES
         src/parsing/viewport.cpp
         src/parsing/coordinate_system.cpp
         src/parsing/context/graphics_element.cpp
-        src/parsing/context/svg.cpp)
+        src/parsing/context/svg.cpp
+        src/parsing/context/g.cpp)
 
 add_executable(svg_converter ${SOURCE_FILES})
 set_target_properties(svg_converter PROPERTIES

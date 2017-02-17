@@ -72,7 +72,12 @@ class GraphicsElementContext {
      * Based on the viewport the element is in.
      */
     const LengthFactory& length_factory() const;
+
+    /**
+     * Used by the `GraphicsElementContext(const ParentContext&)` constructor.
+     * @return Coordinate system for child elements.
+     */
+    const CoordinateSystem& inner_coordinate_system() const;
 };
 
 #endif  // SVG_CONVERTER_GRAPHICSELEMENTCONTEXT_H
-

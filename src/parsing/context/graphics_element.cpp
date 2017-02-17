@@ -17,3 +17,8 @@ void GraphicsElementContext::transform_matrix(
 const LengthFactory& GraphicsElementContext::length_factory() const {
     return viewport_.length_factory();
 }
+
+const CoordinateSystem& GraphicsElementContext::inner_coordinate_system()
+    const {
+    return coordinate_system();
+}

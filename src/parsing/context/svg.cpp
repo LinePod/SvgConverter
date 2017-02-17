@@ -1,9 +1,5 @@
 #include "svg.h"
 
-const CoordinateSystem& SvgContext::inner_coordinate_system() const {
-    return coordinate_system();
-}
-
 const Viewport& SvgContext::inner_viewport() const { return inner_viewport_; }
 
 void SvgContext::set_viewport(double, double, double width, double height) {

@@ -32,12 +32,6 @@ class SvgContext : public GraphicsElementContext {
 
     /**
      * Used by the `GraphicsElementContext(const ParentContext&)` constructor.
-     * @return Coordinate system for child elements.
-     */
-    const CoordinateSystem& inner_coordinate_system() const;
-
-    /**
-     * Used by the `GraphicsElementContext(const ParentContext&)` constructor.
      * @return Viewport for child elements.
      */
     const Viewport& inner_viewport() const;

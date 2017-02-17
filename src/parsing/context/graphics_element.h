@@ -40,7 +40,7 @@ class GraphicsElementContext {
 
     GraphicsElementContext(const Viewport& viewport,
                            const CoordinateSystem& coordinate_system)
-        : viewport_{viewport}, coordinate_system_{coordinate_system} {}
+        : coordinate_system_{coordinate_system}, viewport_{viewport} {}
 
     /**
      * Creates a new instance from information supplied by a parent context.
@@ -50,8 +50,8 @@ class GraphicsElementContext {
      */
     template <class ParentContext>
     explicit GraphicsElementContext(const ParentContext& parent)
-        : viewport_{parent.inner_viewport()},
-          coordinate_system_{parent.inner_coordinate_system()} {}
+        : coordinate_system_{parent.inner_coordinate_system()},
+          viewport_{parent.inner_viewport()} {}
 
     /**
      * Accessor to the coordinate system of this element.

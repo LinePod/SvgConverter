@@ -55,6 +55,11 @@ class SvgContext : public GraphicsElementContext {
     void disable_rendering();
 
     /**
+     * Svg++ event called when leaving an element.
+     */
+    void on_exit_element() {}
+
+    /**
      * Whether rendering of this element and its children has been disabled.
      */
     bool rendering_disabled() const;

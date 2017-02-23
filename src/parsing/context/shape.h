@@ -11,7 +11,7 @@
  * SVG++ automatically converts all shapes to paths and then to a minimal subset
  * of the path commands, so that we only need to implement a few methods.
  */
-class ShapeContext : GraphicsElementContext {
+class ShapeContext : public GraphicsElementContext {
  public:
     template <class ParentContext>
     explicit ShapeContext(const ParentContext& parent)
@@ -43,6 +43,11 @@ class ShapeContext : GraphicsElementContext {
      * SVG++ event after the last shape command.
      */
     void path_exit();
+
+    /**
+     * Svg++ event called when leaving an element.
+     */
+    void on_exit_element() {}
 };
 
 #endif  // SVG_CONVERTER_SHAPE_H

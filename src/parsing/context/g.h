@@ -6,7 +6,7 @@
 /**
  * Context for parsing <g> elements.
  */
-class GContext : GraphicsElementContext {
+class GContext : public GraphicsElementContext {
  public:
     template <class ParentContext>
     explicit GContext(const ParentContext& parent)
@@ -17,6 +17,11 @@ class GContext : GraphicsElementContext {
      * @return Viewport for child elements.
      */
     const Viewport& inner_viewport() const;
+
+    /**
+     * Svg++ event called when leaving an element.
+     */
+    void on_exit_element() {}
 };
 
 #endif  // SVG_CONVERTER_G_H

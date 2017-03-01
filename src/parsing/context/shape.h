@@ -1,9 +1,11 @@
 #ifndef SVG_CONVERTER_SHAPE_H
 #define SVG_CONVERTER_SHAPE_H
 
-#include "graphics_element.h"
-
+#include <boost/optional.hpp>
 #include <svgpp/definitions.hpp>
+
+#include "../../math_defs.h"
+#include "graphics_element.h"
 
 /**
  * Context for shape elements, like <path> or <rect>.
@@ -12,6 +14,25 @@
  * of the path commands, so that we only need to implement a few methods.
  */
 class ShapeContext : public GraphicsElementContext {
+ private:
+    struct PathState {
+        Point start_;
+        Point current_;
+    };
+
+    /**
+     * State of path parsing.
+     *
+     * Contains the first point of the current subpath and the current. Only
+     * none before the mandatory first move command has been parsed.
+     */
+    boost::optional<PathState> state_;
+
+    /**
+     * Returns to the path state or throws an error if is not initialized.
+     */
+    PathState& assert_state();
+
  public:
     template <class ParentContext>
     explicit ShapeContext(const ParentContext& parent)

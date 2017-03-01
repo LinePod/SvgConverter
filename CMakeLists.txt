@@ -14,7 +14,8 @@ set(SOURCE_FILES
         src/parsing/context/graphics_element.cpp
         src/parsing/context/svg.cpp
         src/parsing/context/g.cpp
-        src/parsing/context/shape.cpp)
+        src/parsing/context/shape.cpp
+        src/parsing/gpgl_exporter.cpp)
 
 add_executable(svg_converter ${SOURCE_FILES})
 set_target_properties(svg_converter PROPERTIES
@@ -26,7 +27,8 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     target_compile_options(svg_converter
             PUBLIC -Weverything
             PUBLIC -Wno-c++98-compat
-            PUBLIC -Wno-padded)
+            PUBLIC -Wno-padded
+            PUBLIC -Wno-missing-prototypes)
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     target_compile_options(svg_converter
             PUBLIC -Wall

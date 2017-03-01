@@ -5,6 +5,7 @@
 
 #include "../coordinate_system.h"
 #include "../viewport.h"
+#include "base.h"
 
 /**
  * Context base class for elements which directly render graphics.
@@ -20,7 +21,7 @@
  * (https://developer.mozilla.org/en-US/docs/Web/API/SVGGraphicsElement) from
  * SVG 2.
  */
-class GraphicsElementContext {
+class GraphicsElementContext : public BaseContext {
  private:
     /**
      * Coordinate system for this element.
@@ -38,19 +39,22 @@ class GraphicsElementContext {
      */
     const Viewport& viewport_;
 
-    GraphicsElementContext(const Viewport& viewport,
+    GraphicsElementContext(GpglExporter exporter, const Viewport& viewport,
                            const CoordinateSystem& coordinate_system)
-        : coordinate_system_{coordinate_system}, viewport_{viewport} {}
+        : BaseContext{exporter},
+          coordinate_system_{coordinate_system},
+          viewport_{viewport} {}
 
     /**
      * Creates a new instance from information supplied by a parent context.
      *
-     * The parent class must have accessible methods `inner_viewport()` and
-     * `inner_coordinate_system()`.
+     * The parent class must derive from `BaseContext` and have accessible
+     * methods `inner_viewport()` and `inner_coordinate_system()`.
      */
     template <class ParentContext>
     explicit GraphicsElementContext(const ParentContext& parent)
-        : coordinate_system_{parent.inner_coordinate_system()},
+        : BaseContext{parent},
+          coordinate_system_{parent.inner_coordinate_system()},
           viewport_{parent.inner_viewport()} {}
 
     /**

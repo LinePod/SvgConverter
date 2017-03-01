@@ -3,6 +3,8 @@
 
 #include <eigen3/Eigen/Geometry>
 
+#include "../math_defs.h"
+
 /**
  * An SVG affine transformation.
  */
@@ -35,6 +37,11 @@ class CoordinateSystem {
      */
     CoordinateSystem(const CoordinateSystem& parent,
                      const Transform& transform);
+
+    /**
+     * Transforms a point from this coordinate system to the root one.
+     */
+    Point to_root(Point point) const;
 };
 
 #endif  // SVG_CONVERTER_COORDINATE_SYSTEM_H

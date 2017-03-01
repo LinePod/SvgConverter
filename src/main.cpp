@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
     LIBXML_TEST_VERSION
 
     auto doc = loadSvg(argv[1]);
-    convert(doc);
+    std::cout << convert(doc);
 
     return 0;
 }

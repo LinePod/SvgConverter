@@ -6,9 +6,10 @@
 /**
  * Describes the mapping between user units and absolute units like millimeters.
  *
- * We use 20 so that the user units match the GPGL units at the top level.
+ * We use 1 so that the user units on the top level of the svg are equal to
+ * millimeters, which is more intuitive than for example the 1/20mm GPGL units.
  */
-constexpr double user_units_per_mm = 20;
+constexpr double user_units_per_mm = 1;
 
 using LengthFactory = svgpp::factory::length::unitless<>;
 
@@ -24,9 +25,9 @@ class Viewport {
 
  public:
     /**
-     * Creates a new viewport with default sizes.
+     * Creates a root viewport with the given print area size in millimeters.
      */
-    Viewport();
+    Viewport(double print_area_width, double print_area_height);
 
     /**
      * Sets the size of the viewport.

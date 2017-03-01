@@ -8,6 +8,7 @@
 
 #include "../utility.h"
 #include "context/svg.h"
+#include "viewport.h"
 
 /**
  * Controls SVG++'s traversal of the SVG document.
@@ -73,5 +74,15 @@ using PathPolicy = svgpp::policy::path::minimal;
  * attributes or transform attribute) is not important for us.
  */
 using ViewportPolicy = svgpp::policy::viewport::as_transform;
+
+/**
+ * Obtain the length factory for length conversions from the context instance.
+ *
+ * The context must provide a method `length_factory` which returns a reference
+ * to the length factory.
+ */
+using LengthPolicy =
+    svgpp::policy::length::forward_to_method<GraphicsElementContext,
+                                             const LengthFactory>;
 
 #endif  // SVG_CONVERTER_POLICIES_H

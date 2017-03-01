@@ -24,11 +24,16 @@ class SvgContext : public GraphicsElementContext {
      * @param global_viewport Global viewport representing the available space.
      */
     explicit SvgContext(GpglExporter exporter, const Viewport& global_viewport)
-        : GraphicsElementContext(exporter, global_viewport, {}) {}
+        : GraphicsElementContext(exporter, global_viewport, {}),
+          // Per SVG spec the default width and height 100%, so the inner
+          // viewport is effectively the same as the outer one.
+          inner_viewport_{global_viewport} {}
 
     template <class ParentContext>
     explicit SvgContext(const ParentContext& parent)
-        : GraphicsElementContext(parent) {}
+        : GraphicsElementContext(parent),
+          // See remark on the constructor above.
+          inner_viewport_{viewport_} {}
 
     /**
      * Used by the `GraphicsElementContext(const ParentContext&)` constructor.

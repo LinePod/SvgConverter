@@ -1,6 +1,7 @@
 #include "viewport.h"
 
-Viewport::Viewport() {
+Viewport::Viewport(double print_area_width, double print_area_height) {
+    length_factory_.set_viewport_size(print_area_width, print_area_height);
     length_factory_.set_absolute_units_coefficient(
         user_units_per_mm, svgpp::tag::length_units::mm{});
 }

@@ -35,8 +35,8 @@ class XmlLoadError : public std::exception {
     const char* what() const noexcept override;
 };
 
-ManagedXmlDoc loadDocument(const char* filename);
+ManagedXmlDoc load_document(const char* filename);
 
-xmlNodePtr getRoot(const ManagedXmlDoc& doc);
+xmlNodePtr get_root(const ManagedXmlDoc& doc);
 
 #endif  // SVG_CONVERTER_XML_H

@@ -3,14 +3,14 @@
 /**
  * Factor to convert from millimeters to GPGL units.
  */
-constexpr double mm_to_gpgl_factor = 20;
+constexpr double kMillimeterToGpglFactor = 20;
 
 /**
  * Convert a point from millimeter based SVG space to GPGL space.
  */
 Point to_gpgl(Point point) {
     // GPGL has a x axis that points to the right and a y axis that points down
-    return Point{point(1), point(0)} * mm_to_gpgl_factor;
+    return Point{point(1), point(0)} * kMillimeterToGpglFactor;
 }
 
 GpglExporter::GpglExporter(std::ostringstream& out_stream)

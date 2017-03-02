@@ -12,7 +12,7 @@
 #include "svg.h"
 
 template <class ElementTag>
-constexpr bool is_shape_element =
+constexpr bool kIsShapeElement =
     boost::mpl::has_key<svgpp::traits::shape_elements, ElementTag>::value;
 
 /**
@@ -47,7 +47,7 @@ struct ChildContextFactories::apply<ParentContext, svgpp::tag::element::g> {
 // Overload for `ShapeContext`
 template <class ParentContext, class ElementTag>
 struct ChildContextFactories::apply<
-    ParentContext, ElementTag, std::enable_if_t<is_shape_element<ElementTag>>> {
+    ParentContext, ElementTag, std::enable_if_t<kIsShapeElement<ElementTag>>> {
     using type = svgpp::factory::context::on_stack<ShapeContext>;
 };
 

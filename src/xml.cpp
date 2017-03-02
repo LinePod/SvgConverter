@@ -10,7 +10,7 @@ XmlLoadError::~XmlLoadError() { xmlResetError(&error_); }
 
 const char* XmlLoadError::what() const noexcept { return error_.message; }
 
-ManagedXmlDoc loadDocument(const char* filename) {
+ManagedXmlDoc load_document(const char* filename) {
     ManagedXmlDoc doc{xmlParseFile(filename)};
     if (doc == nullptr) {
         throw XmlLoadError{xmlGetLastError()};
@@ -19,6 +19,6 @@ ManagedXmlDoc loadDocument(const char* filename) {
     return doc;
 }
 
-xmlNodePtr getRoot(const ManagedXmlDoc& doc) {
+xmlNodePtr get_root(const ManagedXmlDoc& doc) {
     return xmlDocGetRootElement(doc.get());
 }

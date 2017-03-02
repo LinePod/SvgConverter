@@ -42,17 +42,17 @@ class SvgContext : public GraphicsElementContext {
     const Viewport& inner_viewport() const;
 
     /**
-     * Svg++ event reporting x, y, width and height properties.
+     * SVG++ event reporting x, y, width and height properties.
      */
     void set_viewport(double, double, double width, double height);
 
     /**
-     * Svg++ event reporting the viewbox size set by the `viewbox` attribute.
+     * SVG++ event reporting the viewbox size set by the `viewbox` attribute.
      */
     void set_viewbox_size(double width, double height);
 
     /**
-     * Svg++ event reporting viewport width and/or height being set to 0.
+     * SVG++ event reporting viewport width and/or height being set to 0.
      *
      * The SVG spec defines that the content rendering should be disabled in
      * this case.
@@ -60,7 +60,7 @@ class SvgContext : public GraphicsElementContext {
     void disable_rendering();
 
     /**
-     * Svg++ event called when leaving an element.
+     * SVG++ event called when leaving an element.
      */
     void on_exit_element() {}
 

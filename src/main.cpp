@@ -7,7 +7,14 @@
 #include "conversion.h"
 #include "xml.h"
 
-ManagedXmlDoc loadSvg(const char* filename);
+ManagedXmlDoc load_svg(const char* filename) {
+    try {
+        return load_document(filename);
+    } catch (const XmlLoadError& err) {
+        std::cerr << "Failed to load svg: " << err.what() << '\n';
+        std::exit(1);
+    }
+}
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
@@ -17,17 +24,8 @@ int main(int argc, char* argv[]) {
 
     LIBXML_TEST_VERSION
 
-    auto doc = loadSvg(argv[1]);
+    auto doc = load_svg(argv[1]);
     std::cout << convert(doc);
 
     return 0;
-}
-
-ManagedXmlDoc loadSvg(const char* filename) {
-    try {
-        return loadDocument(filename);
-    } catch (const XmlLoadError& err) {
-        std::cerr << "Failed to load svg: " << err.what() << '\n';
-        std::exit(1);
-    }
 }

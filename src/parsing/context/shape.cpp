@@ -9,7 +9,7 @@
  *
  * See `subdivideCurve` in `bezier.h` for details.
  */
-constexpr double bezier_error_threshold = 5;
+constexpr double kBezierErrorThreshold = 5;
 
 ShapeContext::PathState& ShapeContext::assert_state() {
     if (state_) {
@@ -42,7 +42,7 @@ void ShapeContext::path_cubic_bezier_to(double x1, double y1, double x2,
     Point ctrl1 = coordinate_system().to_root({x1, y1});
     Point ctrl2 = coordinate_system().to_root({x2, y2});
     Point end = coordinate_system().to_root({x, y});
-    subdivideCurve(bezier_error_threshold, state.current_, ctrl1, ctrl2, end,
+    subdivideCurve(kBezierErrorThreshold, state.current_, ctrl1, ctrl2, end,
                    [this](Point p) { exporter().draw_to(p); });
 
     state.current_ = end;

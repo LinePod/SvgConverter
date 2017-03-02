@@ -66,7 +66,7 @@ class ShapeContext : public GraphicsElementContext {
     void path_exit();
 
     /**
-     * Svg++ event called when leaving an element.
+     * SVG++ event called when leaving an element.
      */
     void on_exit_element() {}
 };

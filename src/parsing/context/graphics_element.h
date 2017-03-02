@@ -64,7 +64,7 @@ class GraphicsElementContext : public BaseContext {
 
  public:
     /**
-     * Handle a `transform` attribute being reported by svg++.
+     * Handle a `transform` attribute being reported by SVG++.
      *
      * This transforms the coordinate system for this element.
      */

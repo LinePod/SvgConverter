@@ -9,7 +9,7 @@
  * We use 1 so that the user units on the top level of the svg are equal to
  * millimeters, which is more intuitive than for example the 1/20mm GPGL units.
  */
-constexpr double user_units_per_mm = 1;
+constexpr double kUserUnitsPerMillimeter = 1;
 
 using LengthFactory = svgpp::factory::length::unitless<>;
 
@@ -38,7 +38,7 @@ class Viewport {
     void set_size(double width, double height);
 
     /**
-     * Svg++ length factory for elements inside this viewport.
+     * SVG++ length factory for elements inside this viewport.
      */
     const LengthFactory& length_factory() const;
 };

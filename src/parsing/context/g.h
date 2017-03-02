@@ -19,7 +19,7 @@ class GContext : public GraphicsElementContext {
     const Viewport& inner_viewport() const;
 
     /**
-     * Svg++ event called when leaving an element.
+     * SVG++ event called when leaving an element.
      */
     void on_exit_element() {}
 };

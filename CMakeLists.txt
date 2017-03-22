@@ -19,20 +19,20 @@ set(SOURCE_FILES
         src/parsing/context/shape.cpp
         src/parsing/gpgl_exporter.cpp)
 
-add_executable(svg_converter ${SOURCE_FILES})
-set_target_properties(svg_converter PROPERTIES
+add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+set_target_properties(${PROJECT_NAME} PROPERTIES
         CXX_STANDARD 14
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS OFF)
 
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-    target_compile_options(svg_converter
+    target_compile_options(${PROJECT_NAME}
             PUBLIC -Weverything
             PUBLIC -Wno-c++98-compat
             PUBLIC -Wno-padded
             PUBLIC -Wno-missing-prototypes)
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-    target_compile_options(svg_converter
+    target_compile_options(${PROJECT_NAME}
             PUBLIC -Wall
             PUBLIC -Wpedantic
             PUBLIC -Wextra)
@@ -40,10 +40,10 @@ endif()
 
 # SYSTEM tells the compiler to treat the includes as system includes,
 # suppressing the warnings in svg++.
-target_include_directories(svg_converter SYSTEM
+target_include_directories(${PROJECT_NAME} SYSTEM
         PUBLIC ${Boost_INCLUDE_DIRS}
         PUBLIC ${Eigen3_INCLUDE_DIR}
         PUBLIC ${LIBXML2_INCLUDE_DIR}
         PUBLIC ${SVGPP_INCLUDE_DIR})
 
-target_link_libraries(svg_converter ${LIBXML2_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${LIBXML2_LIBRARIES} Clipper)

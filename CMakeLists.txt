@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.6)
 project(svg_converter)
 
+add_subdirectory(external)
+
 find_package(Boost REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(LibXml2 REQUIRED)
@@ -42,6 +44,6 @@ target_include_directories(svg_converter SYSTEM
         PUBLIC ${Boost_INCLUDE_DIRS}
         PUBLIC ${Eigen3_INCLUDE_DIR}
         PUBLIC ${LIBXML2_INCLUDE_DIR}
-        PUBLIC external/svgpp/include)
+        PUBLIC ${SVGPP_INCLUDE_DIR})
 
 target_link_libraries(svg_converter ${LIBXML2_LIBRARIES})

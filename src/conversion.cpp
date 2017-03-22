@@ -23,7 +23,8 @@ std::string convert(const ManagedXmlDoc& svgDoc) {
         svgpp::processed_elements<ProcessedElements>,
         svgpp::processed_attributes<ProcessedAttributes>,
         svgpp::context_factories<ChildContextFactories>,
-        svgpp::path_policy<PathPolicy>, svgpp::viewport_policy<ViewportPolicy>,
-        svgpp::length_policy<LengthPolicy>>::load_document(root, context);
+        svgpp::path_policy<PathPolicy>, svgpp::length_policy<LengthPolicy>,
+        svgpp::attribute_traversal<AttributeTraversalPolicy>,
+        svgpp::viewport_policy<ViewportPolicy>>::load_document(root, context);
     return code_stream.str();
 }

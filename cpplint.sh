@@ -1,2 +1,2 @@
 #!/bin/sh
-cpplint --recursive --quiet --verbose=0 --filter=-legal,-build/header_guard,-build/include_subdir,-whitespace/braces src
+cpplint --recursive --quiet --verbose=0 src

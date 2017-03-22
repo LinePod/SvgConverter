@@ -21,7 +21,7 @@ void GpglExporter::move_to(Point point) {
     out_stream_ << "M " << point(0) << ',' << point(1) << '\x03';
 }
 
-void GpglExporter::draw_to(Point point) {
+void GpglExporter::plot_to(Point point) {
     point = to_gpgl(point);
     out_stream_ << "D " << point(0) << ',' << point(1) << '\x03';
 }

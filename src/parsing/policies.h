@@ -29,7 +29,9 @@ struct DocumentTraversalControlPolicy {
         return true;
     }
 
-    static bool proceed_to_element_content(const SvgContext& context) {
+    template <class Exporter>
+    static bool proceed_to_element_content(
+        const SvgContext<Exporter>& context) {
         return !context.rendering_disabled();
     }
 
@@ -89,10 +91,18 @@ using ViewportPolicy = svgpp::policy::viewport::as_transform;
  *
  * The context must provide a method `length_factory` which returns a reference
  * to the length factory.
+ *
+ * This is basically a version of `svgpp::policy::length::forward_to_method`
+ * that doesn't need a common base type for the contexts.
  */
-using LengthPolicy =
-    svgpp::policy::length::forward_to_method<GraphicsElementContext,
-                                             const LengthFactory>;
+struct LengthPolicy {
+    using length_factory_type = const LengthFactory;
+
+    template <class Context>
+    static length_factory_type& length_factory(Context& context) {
+        return context.length_factory();
+    }
+};
 
 /**
  * Defines order and priority of attributes being parsed.

@@ -13,10 +13,6 @@ set(SOURCE_FILES
         src/conversion.cpp
         src/parsing/viewport.cpp
         src/parsing/coordinate_system.cpp
-        src/parsing/context/graphics_element.cpp
-        src/parsing/context/svg.cpp
-        src/parsing/context/g.cpp
-        src/parsing/context/shape.cpp
         src/parsing/gpgl_exporter.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})

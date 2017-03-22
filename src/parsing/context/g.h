@@ -6,17 +6,18 @@
 /**
  * Context for parsing <g> elements.
  */
-class GContext : public GraphicsElementContext {
+template <class Exporter>
+class GContext : public GraphicsElementContext<Exporter> {
  public:
     template <class ParentContext>
     explicit GContext(const ParentContext& parent)
-        : GraphicsElementContext{parent} {}
+        : GraphicsElementContext<Exporter>{parent} {}
 
     /**
      * Used by the `GraphicsElementContext(const ParentContext&)` constructor.
      * @return Viewport for child elements.
      */
-    const Viewport& inner_viewport() const;
+    const Viewport& inner_viewport() const { return this->viewport_; }
 
     /**
      * SVG++ event called when leaving an element.

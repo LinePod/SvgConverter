@@ -11,7 +11,7 @@ class GpglExporter {
 
  public:
     /**
-     * Creates a new gpgl exporter writting to the given stream.
+     * Creates a new gpgl exporter writing to the given stream.
      *
      * The reference must be valid for the lifetime of the exporter and all its
      * copies.
@@ -24,7 +24,7 @@ class GpglExporter {
 
     void move_to(Point point);
 
-    void draw_to(Point point);
+    void plot_to(Point point);
 };
 
 #endif  // SVG_CONVERTER_GPGL_EXPORTER_H

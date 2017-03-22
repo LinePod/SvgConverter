@@ -17,7 +17,7 @@ std::string convert(const ManagedXmlDoc& svgDoc) {
     std::ostringstream code_stream;
     GpglExporter exporter{code_stream};
     const Viewport global_viewport{print_area_width, print_area_height};
-    SvgContext context{exporter, global_viewport};
+    SvgContext<GpglExporter> context{exporter, global_viewport};
     xmlNodePtr root = xmlDocGetRootElement(svgDoc.get());
     svgpp::document_traversal<
         svgpp::processed_elements<ProcessedElements>,

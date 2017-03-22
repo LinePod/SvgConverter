@@ -2,6 +2,7 @@
 #define SVG_CONVERTER_FACTORIES_H
 
 #include <type_traits>
+#include <utility>
 
 #include <boost/mpl/has_key.hpp>
 #include <svgpp/factory/context.hpp>
@@ -11,9 +12,49 @@
 #include "shape.h"
 #include "svg.h"
 
+namespace detail {
+
+namespace element = svgpp::tag::element;
+
+/**
+ * Constant specifying whether the given element is a shape element.
+ */
 template <class ElementTag>
 constexpr bool kIsShapeElement =
     boost::mpl::has_key<svgpp::traits::shape_elements, ElementTag>::value;
+
+/**
+ * Derives the type of the inner exporter from a parent context type.
+ */
+template <class ParentContext>
+using InnerExporter = decltype(std::declval<ParentContext>().inner_exporter());
+
+/**
+ * Definitions for `ChildContextFactories`.
+ *
+ * All types will be wrapped `svgpp::factory::context::on_stack<>` in
+ * `ChildContextFactories` (not done here to reduce boilerplate).
+ */
+template <class ParentContext, class ElementTag, class Enable = void>
+struct CCFImpl {};
+
+template <class ParentContext>
+struct CCFImpl<ParentContext, element::svg> {
+    using type = SvgContext<InnerExporter<ParentContext>>;
+};
+
+template <class ParentContext>
+struct CCFImpl<ParentContext, element::g> {
+    using type = GContext<InnerExporter<ParentContext>>;
+};
+
+template <class ParentContext, class ElementTag>
+struct CCFImpl<ParentContext, ElementTag,
+               std::enable_if_t<kIsShapeElement<ElementTag>>> {
+    using type = ShapeContext<InnerExporter<ParentContext>>;
+};
+
+}  // namespace detail
 
 /**
  * Describes how to create context instances for each SVG element.
@@ -22,33 +63,20 @@ constexpr bool kIsShapeElement =
  * a new instance is created for each element, and that the instances will get
  * a reference to the parent context passed to their constructor.
  *
+ * All graphics element contexts use the exporter type derived from the parent
+ * elements `inner_exporter` method.
+ *
  * Other than that, the logic is:
  *  - `SvgContext` for `<svg>` elements
  *  - `GContext` for `<g>` elements
  *  - `ShapeContext` for shape elements (`<path>`, `<rect>`, etc.)
  */
 struct ChildContextFactories {
-    template <class ParentContext, class ElementTag, class Enable = void>
-    struct apply {};
-};
-
-// Overload for `SvgContext`
-template <class ParentContext>
-struct ChildContextFactories::apply<ParentContext, svgpp::tag::element::svg> {
-    using type = svgpp::factory::context::on_stack<SvgContext>;
-};
-
-// Overload for `GContext`
-template <class ParentContext>
-struct ChildContextFactories::apply<ParentContext, svgpp::tag::element::g> {
-    using type = svgpp::factory::context::on_stack<GContext>;
-};
-
-// Overload for `ShapeContext`
-template <class ParentContext, class ElementTag>
-struct ChildContextFactories::apply<
-    ParentContext, ElementTag, std::enable_if_t<kIsShapeElement<ElementTag>>> {
-    using type = svgpp::factory::context::on_stack<ShapeContext>;
+    template <class ParentContext, class ElementTag>
+    struct apply {
+        using type = svgpp::factory::context::on_stack<
+            typename detail::CCFImpl<ParentContext, ElementTag>::type>;
+    };
 };
 
 #endif  // SVG_CONVERTER_FACTORIES_H

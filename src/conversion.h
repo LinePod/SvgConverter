@@ -5,6 +5,6 @@
 
 #include "xml.h"
 
-std::string convert(const ManagedXmlDoc& svgDoc);
+std::string convert(const XmlDocument& svgDoc);
 
 #endif  // SVG_CONVERTER_CONVERSION_H

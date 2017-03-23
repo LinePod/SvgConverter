@@ -4,9 +4,9 @@
 #include "conversion.h"
 #include "xml.h"
 
-ManagedXmlDoc load_svg(const char* filename) {
+XmlDocument load_svg(const std::string& filename) {
     try {
-        return load_document(filename);
+        return XmlDocument{filename};
     } catch (const XmlLoadError& err) {
         std::cerr << "Failed to load svg: " << err.what() << '\n';
         std::exit(1);

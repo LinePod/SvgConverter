@@ -10,7 +10,7 @@
 #include "parsing/gpgl_exporter.h"
 #include "parsing/policies.h"
 
-std::string convert(const ManagedXmlDoc& svgDoc) {
+std::string convert(const XmlDocument& svgDoc) {
     constexpr double print_area_width = 210;
     constexpr double print_area_height = 280;
 
@@ -18,7 +18,7 @@ std::string convert(const ManagedXmlDoc& svgDoc) {
     GpglExporter exporter{code_stream};
     const Viewport global_viewport{print_area_width, print_area_height};
     SvgContext<GpglExporter> context{exporter, global_viewport};
-    xmlNodePtr root = xmlDocGetRootElement(svgDoc.get());
+    xmlNodePtr root = svgDoc.root();
     svgpp::document_traversal<
         svgpp::processed_elements<ProcessedElements>,
         svgpp::processed_attributes<ProcessedAttributes>,

@@ -8,6 +8,8 @@
 #include <stdexcept>
 #include <string>
 
+namespace detail {
+
 /**
  * `std::unique_ptr` Deleter for libxml2 elements.
  */
@@ -15,7 +17,25 @@ struct XmlDeleter {
     void operator()(xmlDocPtr doc) const;
 };
 
-using ManagedXmlDoc = std::unique_ptr<xmlDoc, XmlDeleter>;
+}  // namespace detail
+
+class XmlDocument {
+ private:
+    std::unique_ptr<xmlDoc, detail::XmlDeleter> doc_;
+
+ public:
+    /**
+     * Loads an XML document from the given file.
+     */
+    explicit XmlDocument(const std::string& filename);
+
+    /**
+     * Pointer to the root node of the document.
+     *
+     * Only valid for the lifetime of the document.
+     */
+    xmlNodePtr root() const;
+};
 
 class XmlLoadError : public std::exception {
  private:
@@ -34,9 +54,5 @@ class XmlLoadError : public std::exception {
 
     const char* what() const noexcept override;
 };
-
-ManagedXmlDoc load_document(const char* filename);
-
-xmlNodePtr get_root(const ManagedXmlDoc& doc);
 
 #endif  // SVG_CONVERTER_XML_H

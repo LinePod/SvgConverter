@@ -1,13 +1,18 @@
-#ifndef SVG_CONVERTER_PARSING_POLICIES_H_
-#define SVG_CONVERTER_PARSING_POLICIES_H_
+#ifndef SVG_CONVERTER_PARSING_TRAVERSAL_H_
+#define SVG_CONVERTER_PARSING_TRAVERSAL_H_
 
 #include <boost/mpl/map.hpp>
+#include <svgpp/document_traversal.hpp>
 #include <svgpp/policy/path.hpp>
 #include <svgpp/policy/viewport.hpp>
 #include <svgpp/traits/attribute_groups.hpp>
 #include <svgpp/traits/element_groups.hpp>
 
 #include "../mpl_util.h"
+#include "context/base.h"
+#include "context/factories.h"
+#include "context/g.h"
+#include "context/shape.h"
 #include "context/svg.h"
 #include "viewport.h"
 
@@ -139,14 +144,19 @@ struct AttributeTraversalPolicy
     };
 };
 
+/**
+ * SVG++ document traversal typedef with customized polices.
+ */
+using DocumentTraversal = svgpp::document_traversal<
+    svgpp::processed_elements<ProcessedElements>,
+    svgpp::processed_attributes<ProcessedAttributes>,
+    svgpp::context_factories<ChildContextFactories>,
+    svgpp::path_policy<PathPolicy>, svgpp::length_policy<LengthPolicy>,
+    svgpp::attribute_traversal<AttributeTraversalPolicy>,
+    svgpp::viewport_policy<ViewportPolicy>>;
+
 }  // namespace detail
 
-using detail::DocumentTraversalControlPolicy;
-using detail::ProcessedElements;
-using detail::ProcessedAttributes;
-using detail::PathPolicy;
-using detail::ViewportPolicy;
-using detail::LengthPolicy;
-using detail::AttributeTraversalPolicy;
+using detail::DocumentTraversal;
 
-#endif  // SVG_CONVERTER_PARSING_POLICIES_H_
+#endif  // SVG_CONVERTER_PARSING_TRAVERSAL_H_

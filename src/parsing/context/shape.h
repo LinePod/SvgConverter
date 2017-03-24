@@ -1,6 +1,8 @@
 #ifndef SVG_CONVERTER_PARSING_CONTEXT_SHAPE_H_
 #define SVG_CONVERTER_PARSING_CONTEXT_SHAPE_H_
 
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 #include <boost/optional.hpp>
@@ -76,6 +78,15 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
      * Describes the pattern of the stroke, set by `stroke-dasharray`.
      */
     std::vector<double> dasharray_;
+
+    /**
+     * IRI specified with the `fill` attribute.
+     *
+     * Empty if the element should not be filled. Even though the SVG standard
+     * defaults `fill` to `black`, we default to not filling an element because
+     * there is no good default fill.
+     */
+    std::string fill_fragment_iri_;
 
     /**
      * Returns to the path state or throws an error if is not initialized.
@@ -202,6 +213,21 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
     template <class Range>
     void set(svgpp::tag::attribute::stroke_dasharray, const Range& range) {
         dasharray_.assign(boost::begin(range), boost::end(range));
+    }
+
+    template <class... Args>
+    void set(svgpp::tag::attribute::fill, Args...) {
+        throw std::runtime_error{"Unsupported fill type"};
+    }
+
+    void set(svgpp::tag::attribute::fill, svgpp::tag::value::none) {
+        fill_fragment_iri_.clear();
+    }
+
+    template <class String>
+    void set(svgpp::tag::attribute::fill, svgpp::tag::iri_fragment,
+             const String& id) {
+        fill_fragment_iri_.assign(boost::begin(id), boost::end(id));
     }
 };
 

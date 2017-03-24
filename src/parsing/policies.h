@@ -64,6 +64,8 @@ using ProcessedAttributes = Concat<
     // Enable `stroke-dasharray` only for shape elements
     PairAll<svgpp::traits::shape_elements, attrib::stroke_dasharray>,
 
+    PairAll<svgpp::traits::shape_elements, attrib::fill>,
+
     // Other attributes for all elements
     mpl::set<attrib::transform>>;
 

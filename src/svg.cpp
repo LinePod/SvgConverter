@@ -4,7 +4,8 @@ namespace detail {
 
 void Libxml2Deleter::operator()(xmlDocPtr doc) const { xmlFreeDoc(doc); }
 
-void build_id_to_node_map(xmlNodePtr node, std::unordered_map<std::string, xmlNodePtr>& map) {
+void build_id_to_node_map(xmlNodePtr node,
+                          std::unordered_map<std::string, xmlNodePtr>& map) {
     // A note on string handling:
     //
     // Libxml2 uses `xmlChar`s (which are an alias for `unsigned char`s)
@@ -32,7 +33,7 @@ SvgLoadError::SvgLoadError(xmlErrorPtr errorPtr) {
 }
 
 SvgDocument::SvgDocument(const std::string& filename)
-        : doc_{xmlParseFile(filename.c_str())} {
+    : doc_{xmlParseFile(filename.c_str())} {
     if (!doc_) {
         throw SvgLoadError{xmlGetLastError()};
     }

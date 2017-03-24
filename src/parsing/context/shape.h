@@ -1,5 +1,5 @@
-#ifndef SVG_CONVERTER_SHAPE_H
-#define SVG_CONVERTER_SHAPE_H
+#ifndef SVG_CONVERTER_PARSING_CONTEXT_SHAPE_H_
+#define SVG_CONVERTER_PARSING_CONTEXT_SHAPE_H_
 
 #include <vector>
 
@@ -205,4 +205,4 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
     }
 };
 
-#endif  // SVG_CONVERTER_SHAPE_H
+#endif  // SVG_CONVERTER_PARSING_CONTEXT_SHAPE_H_

@@ -1,5 +1,5 @@
-#ifndef SVG_CONVERTER_FACTORIES_H
-#define SVG_CONVERTER_FACTORIES_H
+#ifndef SVG_CONVERTER_PARSING_CONTEXT_FACTORIES_H_
+#define SVG_CONVERTER_PARSING_CONTEXT_FACTORIES_H_
 
 #include <type_traits>
 #include <utility>
@@ -79,4 +79,4 @@ struct ChildContextFactories {
     };
 };
 
-#endif  // SVG_CONVERTER_FACTORIES_H
+#endif  // SVG_CONVERTER_PARSING_CONTEXT_FACTORIES_H_

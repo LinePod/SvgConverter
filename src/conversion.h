@@ -1,5 +1,5 @@
-#ifndef SVG_CONVERTER_CONVERSION_H
-#define SVG_CONVERTER_CONVERSION_H
+#ifndef SVG_CONVERTER_CONVERSION_H_
+#define SVG_CONVERTER_CONVERSION_H_
 
 #include <string>
 
@@ -7,4 +7,4 @@
 
 std::string convert(const SvgDocument& svgDoc);
 
-#endif  // SVG_CONVERTER_CONVERSION_H
+#endif  // SVG_CONVERTER_CONVERSION_H_

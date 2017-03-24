@@ -1,5 +1,5 @@
-#ifndef SVG_CONVERTER_UTILITY_H
-#define SVG_CONVERTER_UTILITY_H
+#ifndef SVG_CONVERTER_MPL_UTIL_H_
+#define SVG_CONVERTER_MPL_UTIL_H_
 
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/insert.hpp>
@@ -58,4 +58,4 @@ using PairAll = typename detail::PairAllImpl<Firsts, Second>::type;
 template <class Map, class Key, class Default>
 using AtOrDefault = typename detail::AtOrDefaultImpl<Map, Key, Default>::type;
 
-#endif  // SVG_CONVERTER_UTILITY_H
+#endif  // SVG_CONVERTER_MPL_UTIL_H_

@@ -1,5 +1,5 @@
-#ifndef SVG_CONVERTER_COORDINATE_SYSTEM_H
-#define SVG_CONVERTER_COORDINATE_SYSTEM_H
+#ifndef SVG_CONVERTER_PARSING_COORDINATE_SYSTEM_H_
+#define SVG_CONVERTER_PARSING_COORDINATE_SYSTEM_H_
 
 #include <eigen3/Eigen/Geometry>
 
@@ -44,4 +44,4 @@ class CoordinateSystem {
     Point to_root(Point point) const;
 };
 
-#endif  // SVG_CONVERTER_COORDINATE_SYSTEM_H
+#endif  // SVG_CONVERTER_PARSING_COORDINATE_SYSTEM_H_

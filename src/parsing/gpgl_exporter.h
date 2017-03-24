@@ -1,5 +1,5 @@
-#ifndef SVG_CONVERTER_GPGL_EXPORTER_H
-#define SVG_CONVERTER_GPGL_EXPORTER_H
+#ifndef SVG_CONVERTER_PARSING_GPGL_EXPORTER_H_
+#define SVG_CONVERTER_PARSING_GPGL_EXPORTER_H_
 
 #include <sstream>
 
@@ -27,4 +27,4 @@ class GpglExporter {
     void plot_to(Point point);
 };
 
-#endif  // SVG_CONVERTER_GPGL_EXPORTER_H
+#endif  // SVG_CONVERTER_PARSING_GPGL_EXPORTER_H_

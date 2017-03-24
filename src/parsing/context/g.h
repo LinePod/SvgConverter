@@ -1,5 +1,5 @@
-#ifndef SVG_CONVERTER_G_H
-#define SVG_CONVERTER_G_H
+#ifndef SVG_CONVERTER_PARSING_CONTEXT_G_H_
+#define SVG_CONVERTER_PARSING_CONTEXT_G_H_
 
 #include "graphics_element.h"
 
@@ -25,4 +25,4 @@ class GContext : public GraphicsElementContext<Exporter> {
     void on_exit_element() {}
 };
 
-#endif  // SVG_CONVERTER_G_H
+#endif  // SVG_CONVERTER_PARSING_CONTEXT_G_H_

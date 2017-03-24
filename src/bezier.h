@@ -1,5 +1,5 @@
-#ifndef SVG_CONVERTER_BEZIER_H
-#define SVG_CONVERTER_BEZIER_H
+#ifndef SVG_CONVERTER_BEZIER_H_
+#define SVG_CONVERTER_BEZIER_H_
 
 #include <eigen3/Eigen/Geometry>
 
@@ -42,4 +42,4 @@ void subdivideCurve(double error_threshold, Point start, Point ctrl1,
     }
 }
 
-#endif  // SVG_CONVERTER_BEZIER_H
+#endif  // SVG_CONVERTER_BEZIER_H_

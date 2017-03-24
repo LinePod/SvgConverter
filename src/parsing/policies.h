@@ -1,5 +1,5 @@
-#ifndef SVG_CONVERTER_POLICIES_H
-#define SVG_CONVERTER_POLICIES_H
+#ifndef SVG_CONVERTER_PARSING_POLICIES_H_
+#define SVG_CONVERTER_PARSING_POLICIES_H_
 
 #include <boost/mpl/map.hpp>
 #include <svgpp/policy/path.hpp>
@@ -147,4 +147,4 @@ using detail::ViewportPolicy;
 using detail::LengthPolicy;
 using detail::AttributeTraversalPolicy;
 
-#endif  // SVG_CONVERTER_POLICIES_H
+#endif  // SVG_CONVERTER_PARSING_POLICIES_H_

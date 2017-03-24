@@ -1,5 +1,5 @@
-#ifndef SVG_CONVERTER_VIEWPORT_H
-#define SVG_CONVERTER_VIEWPORT_H
+#ifndef SVG_CONVERTER_PARSING_VIEWPORT_H_
+#define SVG_CONVERTER_PARSING_VIEWPORT_H_
 
 #include <svgpp/factory/unitless_length.hpp>
 
@@ -43,4 +43,4 @@ class Viewport {
     const LengthFactory& length_factory() const;
 };
 
-#endif  // SVG_CONVERTER_VIEWPORT_H
+#endif  // SVG_CONVERTER_PARSING_VIEWPORT_H_

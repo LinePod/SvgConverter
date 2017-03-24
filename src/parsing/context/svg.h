@@ -1,5 +1,5 @@
-#ifndef SVG_CONVERTER_PARSING_CONTEXT_SVG_H
-#define SVG_CONVERTER_PARSING_CONTEXT_SVG_H
+#ifndef SVG_CONVERTER_PARSING_CONTEXT_SVG_H_
+#define SVG_CONVERTER_PARSING_CONTEXT_SVG_H_
 
 #include "../coordinate_system.h"
 #include "../viewport.h"
@@ -79,4 +79,4 @@ class SvgContext : public GraphicsElementContext<Exporter> {
     bool rendering_disabled() const { return rendering_disabled_; }
 };
 
-#endif  // SVG_CONVERTER_PARSING_CONTEXT_SVG_H
+#endif  // SVG_CONVERTER_PARSING_CONTEXT_SVG_H_

@@ -1,5 +1,5 @@
-#ifndef SVG_CONVERTER_SVG_H
-#define SVG_CONVERTER_SVG_H
+#ifndef SVG_CONVERTER_SVG_H_
+#define SVG_CONVERTER_SVG_H_
 
 #include <libxml/parser.h>
 #include <libxml/xmlerror.h>
@@ -63,4 +63,4 @@ class SvgLoadError : public std::exception {
     const char* what() const noexcept override;
 };
 
-#endif  // SVG_CONVERTER_SVG_H
+#endif  // SVG_CONVERTER_SVG_H_

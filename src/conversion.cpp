@@ -10,7 +10,7 @@
 #include "parsing/gpgl_exporter.h"
 #include "parsing/policies.h"
 
-std::string convert(const XmlDocument& svgDoc) {
+std::string convert(const SvgDocument& svgDoc) {
     constexpr double print_area_width = 210;
     constexpr double print_area_height = 280;
 

@@ -2,12 +2,12 @@
 #include <iostream>
 
 #include "conversion.h"
-#include "xml.h"
+#include "svg.h"
 
-XmlDocument load_svg(const std::string& filename) {
+SvgDocument load_svg(const std::string& filename) {
     try {
-        return XmlDocument{filename};
-    } catch (const XmlLoadError& err) {
+        return SvgDocument{filename};
+    } catch (const SvgLoadError& err) {
         std::cerr << "Failed to load svg: " << err.what() << '\n';
         std::exit(1);
     }

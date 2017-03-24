@@ -3,8 +3,8 @@
 
 #include <string>
 
-#include "xml.h"
+#include "svg.h"
 
-std::string convert(const XmlDocument& svgDoc);
+std::string convert(const SvgDocument& svgDoc);
 
 #endif  // SVG_CONVERTER_CONVERSION_H

@@ -8,9 +8,7 @@
 #include <svgpp/factory/context.hpp>
 #include <svgpp/traits/element_groups.hpp>
 
-#include "g.h"
-#include "shape.h"
-#include "svg.h"
+#include "fwd.h"
 
 namespace detail {
 

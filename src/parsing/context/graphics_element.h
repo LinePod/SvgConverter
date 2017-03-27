@@ -5,6 +5,7 @@
 
 #include "../coordinate_system.h"
 #include "../viewport.h"
+#include "base.h"
 
 /**
  * Context base class for elements which directly render graphics.
@@ -23,7 +24,7 @@
  * SVG 2.
  */
 template <class Exporter>
-class GraphicsElementContext {
+class GraphicsElementContext : public BaseContext {
  private:
     /**
      * Coordinate system for this element.
@@ -46,9 +47,11 @@ class GraphicsElementContext {
      */
     const Viewport& viewport_;
 
-    GraphicsElementContext(Exporter exporter, const Viewport& viewport,
+    GraphicsElementContext(const SvgDocument& document, Exporter exporter,
+                           const Viewport& viewport,
                            const CoordinateSystem& coordinate_system)
-        : coordinate_system_{coordinate_system},
+        : BaseContext(document),
+          coordinate_system_{coordinate_system},
           exporter_{exporter},
           viewport_{viewport} {}
 
@@ -61,7 +64,8 @@ class GraphicsElementContext {
      */
     template <class ParentContext>
     explicit GraphicsElementContext(const ParentContext& parent)
-        : coordinate_system_{parent.inner_coordinate_system()},
+        : BaseContext(parent),
+          coordinate_system_{parent.inner_coordinate_system()},
           exporter_{parent.inner_exporter()},
           viewport_{parent.inner_viewport()} {}
 

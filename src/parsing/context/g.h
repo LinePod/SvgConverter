@@ -18,11 +18,6 @@ class GContext : public GraphicsElementContext<Exporter> {
      * @return Viewport for child elements.
      */
     const Viewport& inner_viewport() const { return this->viewport_; }
-
-    /**
-     * SVG++ event called when leaving an element.
-     */
-    void on_exit_element() {}
 };
 
 #endif  // SVG_CONVERTER_PARSING_CONTEXT_G_H_

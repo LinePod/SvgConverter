@@ -1,6 +1,8 @@
 #ifndef SVG_CONVERTER_PARSING_TRAVERSAL_H_
 #define SVG_CONVERTER_PARSING_TRAVERSAL_H_
 
+#include <svgpp/policy/xml/libxml2.hpp>
+
 #include <boost/mpl/map.hpp>
 #include <svgpp/document_traversal.hpp>
 #include <svgpp/policy/path.hpp>
@@ -9,11 +11,8 @@
 #include <svgpp/traits/element_groups.hpp>
 
 #include "../mpl_util.h"
-#include "context/base.h"
 #include "context/factories.h"
-#include "context/g.h"
-#include "context/shape.h"
-#include "context/svg.h"
+#include "context/fwd.h"
 #include "viewport.h"
 
 namespace detail {
@@ -29,10 +28,7 @@ namespace attrib = svgpp::tag::attribute;
  * disabled (viewport width and/or height of zero).
  */
 struct DocumentTraversalControlPolicy {
-    template <class Context>
-    static bool proceed_to_element_content(const Context&) {
-        return true;
-    }
+    static bool proceed_to_element_content(const BaseContext&) { return true; }
 
     template <class Exporter>
     static bool proceed_to_element_content(
@@ -100,7 +96,8 @@ using ViewportPolicy = svgpp::policy::viewport::as_transform;
  * to the length factory.
  *
  * This is basically a version of `svgpp::policy::length::forward_to_method`
- * that doesn't need a common base type for the contexts.
+ * that doesn't need a common base type for the contexts which defines
+ * `length_factory`.
  */
 struct LengthPolicy {
     using length_factory_type = const LengthFactory;
@@ -144,19 +141,18 @@ struct AttributeTraversalPolicy
     };
 };
 
+}  // namespace detail
+
 /**
  * SVG++ document traversal typedef with customized polices.
  */
 using DocumentTraversal = svgpp::document_traversal<
-    svgpp::processed_elements<ProcessedElements>,
-    svgpp::processed_attributes<ProcessedAttributes>,
+    svgpp::processed_elements<detail::ProcessedElements>,
+    svgpp::processed_attributes<detail::ProcessedAttributes>,
     svgpp::context_factories<ChildContextFactories>,
-    svgpp::path_policy<PathPolicy>, svgpp::length_policy<LengthPolicy>,
-    svgpp::attribute_traversal<AttributeTraversalPolicy>,
-    svgpp::viewport_policy<ViewportPolicy>>;
-
-}  // namespace detail
-
-using detail::DocumentTraversal;
+    svgpp::path_policy<detail::PathPolicy>,
+    svgpp::length_policy<detail::LengthPolicy>,
+    svgpp::attribute_traversal<detail::AttributeTraversalPolicy>,
+    svgpp::viewport_policy<detail::ViewportPolicy>>;
 
 #endif  // SVG_CONVERTER_PARSING_TRAVERSAL_H_

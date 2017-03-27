@@ -5,13 +5,61 @@
 #include <string>
 #include <vector>
 
+#include <boost/mpl/set.hpp>
 #include <boost/optional.hpp>
 #include <boost/range.hpp>
 #include <svgpp/definitions.hpp>
 
 #include "../../bezier.h"
 #include "../../math_defs.h"
+#include "../traversal.h"
 #include "graphics_element.h"
+
+namespace detail {
+
+/**
+ * Error threshold for bezier subdivision.
+ *
+ * See `subdivideCurve` in `bezier.h` for details.
+ */
+constexpr double kBezierErrorThreshold = 5;
+
+/**
+ * State maintained while parsing the shape/path of the shape.
+ */
+struct PathState {
+    /**
+     * Start point of the current subpath.
+     */
+    Point start_point;
+
+    /**
+     * Current point of the path.
+     */
+    Point current_point;
+
+    /**
+     * Index of the entry in `dasharray` which is currently being applied.
+     */
+    std::size_t current_dash;
+
+    /**
+     * How much of the current dash has already been plotted.
+     */
+    double current_dash_progress;
+
+    /**
+     * Whether the current dash is a plotted one or an empty one.
+     */
+    bool is_plotted_dash;
+
+    /**
+     * A reset `PathState` for a new subpath starting at the given point.
+     */
+    static PathState reset_to(Point p) { return PathState{p, p, 0, 0, true}; }
+};
+
+}  // namespace detail
 
 /**
  * Context for shape elements, like <path> or <rect>.
@@ -23,56 +71,12 @@ template <class Exporter>
 class ShapeContext : public GraphicsElementContext<Exporter> {
  private:
     /**
-     * Error threshold for bezier subdivision.
-     *
-     * See `subdivideCurve` in `bezier.h` for details.
-     */
-    static constexpr double kBezierErrorThreshold = 5;
-
-    /**
-     * State maintained while parsing the shape/path of the shape.
-     */
-    struct PathState {
-        /**
-         * Start point of the current subpath.
-         */
-        Point start_point;
-
-        /**
-         * Current point of the path.
-         */
-        Point current_point;
-
-        /**
-         * Index of the entry in `dasharray` which is currently being applied.
-         */
-        std::size_t current_dash;
-
-        /**
-         * How much of the current dash has already been plotted.
-         */
-        double current_dash_progress;
-
-        /**
-         * Whether the current dash is a plotted one or an empty one.
-         */
-        bool is_plotted_dash;
-
-        /**
-         * A reset `PathState` for a new subpath starting at the given point.
-         */
-        static PathState reset_to(Point p) {
-            return PathState{p, p, 0, 0, true};
-        }
-    };
-
-    /**
      * State of path parsing.
      *
      * Contains the first point of the current subpath and the current. Only
      * none before the mandatory first move command has been parsed.
      */
-    boost::optional<PathState> state_;
+    boost::optional<detail::PathState> state_;
 
     /**
      * Describes the pattern of the stroke, set by `stroke-dasharray`.
@@ -91,7 +95,7 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
     /**
      * Returns to the path state or throws an error if is not initialized.
      */
-    PathState& assert_state() {
+    detail::PathState& assert_state() {
         if (state_) {
             return *state_;
         }
@@ -114,7 +118,7 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
     /**
      * Draw a line with an already asserted state.
      */
-    void draw_line_to(Point target, PathState& state) {
+    void draw_line_to(Point target, detail::PathState& state) {
         if (dasharray_.empty()) {
             this->exporter_.plot_to(target);
         } else {
@@ -155,7 +159,7 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
     void path_move_to(double x, double y, svgpp::tag::coordinate::absolute) {
         Point p = this->coordinate_system().to_root({x, y});
         this->exporter_.move_to(p);
-        state_ = PathState::reset_to(p);
+        state_ = detail::PathState::reset_to(p);
     }
 
     /**
@@ -177,8 +181,8 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
         Point ctrl1 = this->coordinate_system().to_root({x1, y1});
         Point ctrl2 = this->coordinate_system().to_root({x2, y2});
         Point end = this->coordinate_system().to_root({x, y});
-        subdivideCurve(kBezierErrorThreshold, state.current_point, ctrl1, ctrl2,
-                       end,
+        subdivideCurve(detail::kBezierErrorThreshold, state.current_point,
+                       ctrl1, ctrl2, end,
                        [this, &state](Point p) { draw_line_to(p, state); });
     }
 
@@ -195,10 +199,23 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
      */
     void path_exit() {}
 
-    /**
-     * SVG++ event called when leaving an element.
-     */
-    void on_exit_element() {}
+    void on_exit_element() {
+        using ExpectedElements = boost::mpl::set1<svgpp::tag::element::pattern>;
+        // Override the processed elements setting just for the referenced
+        // element. Allows us to process <pattern> only when referenced.
+        using ProcessedElements = ExpectedElements;
+
+        if (!fill_fragment_iri_.empty()) {
+            auto referenced_node =
+                this->document_.find_by_id(fill_fragment_iri_);
+            // Fails to compile because no context for <pattern> elements has
+            // been defined yet
+            // DocumentTraversal::load_referenced_element<
+            //     svgpp::expected_elements<ExpectedElements>,
+            //     svgpp::processed_elements<ProcessedElements>
+            // >::load(referenced_node, *this);
+        }
+    }
 
     /**
      * SVG++ event when `stroke-dasharray` is set to an emtpy value.

@@ -24,8 +24,10 @@ class SvgContext : public GraphicsElementContext<Exporter> {
      *
      * @param global_viewport Global viewport representing the available space.
      */
-    explicit SvgContext(Exporter exporter, const Viewport& global_viewport)
-        : GraphicsElementContext<Exporter>(exporter, global_viewport, {}),
+    explicit SvgContext(const SvgDocument& document, Exporter exporter,
+                        const Viewport& global_viewport)
+        : GraphicsElementContext<Exporter>(document, exporter, global_viewport,
+                                           {}),
           // Per SVG spec the default width and height is 100%, so the inner
           // viewport is effectively the same as the outer one.
           inner_viewport_{global_viewport} {}
@@ -65,11 +67,6 @@ class SvgContext : public GraphicsElementContext<Exporter> {
      * this case.
      */
     void disable_rendering() { rendering_disabled_ = true; }
-
-    /**
-     * SVG++ event called when leaving an element.
-     */
-    void on_exit_element() {}
 
     /**
      * Whether rendering of this element and its children has been disabled.

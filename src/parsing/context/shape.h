@@ -1,10 +1,12 @@
 #ifndef SVG_CONVERTER_PARSING_CONTEXT_SHAPE_H_
 #define SVG_CONVERTER_PARSING_CONTEXT_SHAPE_H_
 
+#include <iterator>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
+#include <boost/iterator/iterator_adaptor.hpp>
 #include <boost/mpl/set.hpp>
 #include <boost/optional.hpp>
 #include <boost/range.hpp>
@@ -25,39 +27,87 @@ namespace detail {
 constexpr double kBezierErrorThreshold = 5;
 
 /**
- * State maintained while parsing the shape/path of the shape.
+ * Iterator that cycles over a vector indefinitely.
  */
-struct PathState {
-    /**
-     * Start point of the current subpath.
-     */
-    Point start_point;
+template <class T>
+class CyclicIterator
+    : public boost::iterator_adaptor<
+          CyclicIterator<T>, typename std::vector<T>::const_iterator,
+          boost::use_default, std::forward_iterator_tag> {
+ private:
+    const std::vector<T>& vec_;
 
-    /**
-     * Current point of the path.
-     */
-    Point current_point;
+ public:
+    explicit CyclicIterator(const std::vector<T>& vec)
+        : CyclicIterator<T>::iterator_adaptor_{vec.begin()}, vec_{vec} {}
 
-    /**
-     * Index of the entry in `dasharray` which is currently being applied.
-     */
-    std::size_t current_dash;
-
-    /**
-     * How much of the current dash has already been plotted.
-     */
-    double current_dash_progress;
-
-    /**
-     * Whether the current dash is a plotted one or an empty one.
-     */
-    bool is_plotted_dash;
-
-    /**
-     * A reset `PathState` for a new subpath starting at the given point.
-     */
-    static PathState reset_to(Point p) { return PathState{p, p, 0, 0, true}; }
+    void increment() {
+        this->base_reference()++;
+        if (this->base_reference() == vec_.end()) {
+            this->base_reference() = vec_.begin();
+        }
+    }
 };
+
+template <class T>
+CyclicIterator<T> make_cyclic_iter(const std::vector<T>& vec) {
+    return CyclicIterator<T>{vec};
+}
+
+/**
+ * Plot or move to a point, based on a boolean switch.
+ */
+template <class Exporter>
+void plot_or_move(Exporter exporter, Point target, bool move) {
+    if (move) {
+        exporter.move_to(target);
+    } else {
+        exporter.plot_to(target);
+    }
+}
+
+/**
+ * Plots a dashed polyline.
+ */
+template <class Exporter>
+void plot_dashed_line(Exporter exporter, const std::vector<Point>& points,
+                      const std::vector<double>& dasharray) {
+    Point current_point = points.front();
+    exporter.move_to(current_point);
+
+    if (dasharray.empty()) {
+        for (auto point : boost::make_iterator_range(points).advance_begin(1)) {
+            exporter.plot_to(point);
+        }
+
+        return;
+    }
+
+    auto current_dash_iter = make_cyclic_iter(dasharray);
+    double current_dash_remaining = *current_dash_iter;
+    bool is_hole = false;
+
+    for (auto point : boost::make_iterator_range(points).advance_begin(1)) {
+        Point delta = point - current_point;
+        double line_remaining = delta.norm();
+        Point unit_vec = delta.normalized();
+
+        while (current_dash_remaining < line_remaining) {
+            Point target = current_point + current_dash_remaining * unit_vec;
+            plot_or_move(exporter, target, is_hole);
+
+            line_remaining -= current_dash_remaining;
+            current_dash_iter++;
+            current_dash_remaining = *current_dash_iter;
+            current_point = target;
+            is_hole = !is_hole;
+        }
+
+        plot_or_move(exporter, point, is_hole);
+        current_dash_remaining -= line_remaining;
+        current_point = point;
+    }
+}
 
 }  // namespace detail
 
@@ -71,12 +121,16 @@ template <class Exporter>
 class ShapeContext : public GraphicsElementContext<Exporter> {
  private:
     /**
-     * State of path parsing.
+     * Path of the outline of the shape.
      *
-     * Contains the first point of the current subpath and the current. Only
-     * none before the mandatory first move command has been parsed.
+     * Each contained vector describes a subpath of the path.
+     *
+     * After parsing the last vector may contain a single point. In this case
+     * that vector must be ignored for stroke and fill generation.
+     *
+     * In most cases this should only be accessed through `assert_subpath`.
      */
-    boost::optional<detail::PathState> state_;
+    std::vector<std::vector<Point>> outline_path_;
 
     /**
      * Describes the pattern of the stroke, set by `stroke-dasharray`.
@@ -93,59 +147,21 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
     std::string fill_fragment_iri_;
 
     /**
-     * Returns to the path state or throws an error if is not initialized.
+     * Returns a reference to the current subpath.
+     *
+     * Throws an error if no starting point for the first subpath has been
+     * specified. This happens if the data for a <path> does not start with a
+     * move command, and is considered invalid.
+     *
+     * The returned subpath will always contain at least a starting point.
      */
-    detail::PathState& assert_state() {
-        if (state_) {
-            return *state_;
+    std::vector<Point>& assert_subpath() {
+        if (!outline_path_.empty()) {
+            return outline_path_.back();
         }
 
         // TODO(David): Error handling strategy
         throw std::runtime_error{"Invalid path: No leading move command"};
-    }
-
-    /**
-     * Export a plot or move command, depending on the `plot` parameter.
-     */
-    void plot_or_move(bool plot, Point target) {
-        if (plot) {
-            this->exporter_.plot_to(target);
-        } else {
-            this->exporter_.move_to(target);
-        }
-    }
-
-    /**
-     * Draw a line with an already asserted state.
-     */
-    void draw_line_to(Point target, detail::PathState& state) {
-        if (dasharray_.empty()) {
-            this->exporter_.plot_to(target);
-        } else {
-            double remaining_dash =
-                dasharray_[state.current_dash] - state.current_dash_progress;
-            Point delta_vec = target - state.current_point;
-            double remaining_line = delta_vec.norm();
-            Point unit_vec = delta_vec.normalized();
-
-            while (remaining_dash < remaining_line) {
-                Point dash_end =
-                    state.current_point + remaining_dash * unit_vec;
-                plot_or_move(state.is_plotted_dash, dash_end);
-
-                state.current_point = dash_end;
-                state.current_dash =
-                    (state.current_dash + 1) % dasharray_.size();
-                state.is_plotted_dash = !state.is_plotted_dash;
-                state.current_dash_progress = 0;
-                remaining_dash = dasharray_[state.current_dash];
-                remaining_line -= remaining_dash;
-            }
-
-            plot_or_move(state.is_plotted_dash, target);
-            state.current_dash_progress += remaining_line;
-            state.current_point = target;
-        }
     }
 
  public:
@@ -157,18 +173,29 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
      * SVG++ event for a non drawn movement in a shape path.
      */
     void path_move_to(double x, double y, svgpp::tag::coordinate::absolute) {
-        Point p = this->coordinate_system().to_root({x, y});
-        this->exporter_.move_to(p);
-        state_ = detail::PathState::reset_to(p);
+        Point global_point = this->coordinate_system().to_root({x, y});
+        if (outline_path_.empty()) {
+            // This is the initial move command. We add a subpath with the
+            // starting point
+            outline_path_.push_back({global_point});
+        } else {
+            auto& subpath = assert_subpath();
+            if (subpath.size() == 1) {
+                // Empty subpath, set new starting point
+                subpath[0] = global_point;
+            } else {
+                // Create new subpath at target position
+                outline_path_.push_back({global_point});
+            }
+        }
     }
 
     /**
      * SVG++ event for a straight line in a shape path.
      */
     void path_line_to(double x, double y, svgpp::tag::coordinate::absolute) {
-        auto& state = assert_state();
-        Point p = this->coordinate_system().to_root({x, y});
-        draw_line_to(p, state);
+        auto& subpath = assert_subpath();
+        subpath.push_back(this->coordinate_system().to_root({x, y}));
     }
 
     /**
@@ -177,21 +204,21 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
     void path_cubic_bezier_to(double x1, double y1, double x2, double y2,
                               double x, double y,
                               svgpp::tag::coordinate::absolute) {
-        auto& state = assert_state();
+        auto& subpath = assert_subpath();
         Point ctrl1 = this->coordinate_system().to_root({x1, y1});
         Point ctrl2 = this->coordinate_system().to_root({x2, y2});
         Point end = this->coordinate_system().to_root({x, y});
-        subdivideCurve(detail::kBezierErrorThreshold, state.current_point,
-                       ctrl1, ctrl2, end,
-                       [this, &state](Point p) { draw_line_to(p, state); });
+        subdivideCurve(detail::kBezierErrorThreshold, subpath.back(), ctrl1,
+                       ctrl2, end,
+                       [&subpath](Point p) { subpath.push_back(p); });
     }
 
     /**
      * SVG++ event for a straight line to the start of the current subpath.
      */
     void path_close_subpath() {
-        auto& state = assert_state();
-        draw_line_to(state.start_point, state);
+        auto& subpath = assert_subpath();
+        subpath.push_back(subpath.front());
     }
 
     /**
@@ -200,6 +227,12 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
     void path_exit() {}
 
     void on_exit_element() {
+        for (auto& subpath : outline_path_) {
+            if (subpath.size() > 1) {
+                detail::plot_dashed_line(this->exporter_, subpath, dasharray_);
+            }
+        }
+
         using ExpectedElements = boost::mpl::set1<svgpp::tag::element::pattern>;
         // Override the processed elements setting just for the referenced
         // element. Allows us to process <pattern> only when referenced.

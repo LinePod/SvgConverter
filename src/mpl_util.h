@@ -30,14 +30,6 @@ template <class Firsts, class Second>
 using PairAllImpl =
     mpl::transform<Firsts, mpl::pair<mpl::_1, Second>, SetInserter>;
 
-template <class Map, class Key, class Default>
-struct AtOrDefaultImpl {
-    using ValueOrVoid = typename mpl::at<Map, Key>::type;
-
-    using type =
-        mpl::if_<boost::is_same<ValueOrVoid, mpl::void_>, Default, ValueOrVoid>;
-};
-
 }  // namespace detail
 
 /**
@@ -51,11 +43,5 @@ using Concat = typename detail::ConcatImpl<Types...>::type;
  */
 template <class Firsts, class Second>
 using PairAll = typename detail::PairAllImpl<Firsts, Second>::type;
-
-/**
- * Lookup value in map, and return a default if the map doesn't contain the key.
- */
-template <class Map, class Key, class Default>
-using AtOrDefault = typename detail::AtOrDefaultImpl<Map, Key, Default>::type;
 
 #endif  // SVG_CONVERTER_MPL_UTIL_H_

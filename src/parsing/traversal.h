@@ -108,39 +108,6 @@ struct LengthPolicy {
     }
 };
 
-/**
- * Defines order and priority of attributes being parsed.
- *
- * We use this to defer parsing of the points attributes for `<path>`,
- * `<polygon>` and `<polyline>` so that all presentation attributes are parsed
- * before reaching the points. This allows us to immediately emit code for those
- * shapes. The adapters for `<rect>`, `<circle>` and the like already wait until
- * all attributes are processed to emit path events, so no change is needed for
- * those.
- */
-struct AttributeTraversalPolicy
-    : svgpp::policy::attribute_traversal::default_policy {
- private:
-    /**
-     * MPL map specifying the deferred attributes per element.
-     *
-     * By default, no attributes are deferred.
-     */
-    using DeferredElements = typename mpl::map<
-        mpl::pair<element::path, mpl::set<attrib::d>>,
-        mpl::pair<element::polyline, mpl::set<attrib::points>>,
-        mpl::pair<element::polygon, mpl::set<attrib::points>>>::type;
-
- public:
-    struct get_deferred_attributes_by_element {
-        template <class ElementTag>
-        struct apply {
-            using type =
-                AtOrDefault<DeferredElements, ElementTag, mpl::empty_sequence>;
-        };
-    };
-};
-
 }  // namespace detail
 
 /**
@@ -152,7 +119,6 @@ using DocumentTraversal = svgpp::document_traversal<
     svgpp::context_factories<ChildContextFactories>,
     svgpp::path_policy<detail::PathPolicy>,
     svgpp::length_policy<detail::LengthPolicy>,
-    svgpp::attribute_traversal<detail::AttributeTraversalPolicy>,
     svgpp::viewport_policy<detail::ViewportPolicy>>;
 
 #endif  // SVG_CONVERTER_PARSING_TRAVERSAL_H_

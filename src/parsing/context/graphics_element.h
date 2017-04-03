@@ -6,6 +6,7 @@
 #include "../coordinate_system.h"
 #include "../viewport.h"
 #include "base.h"
+#include "transformable.h"
 
 /**
  * Context base class for elements which directly render graphics.
@@ -24,15 +25,7 @@
  * SVG 2.
  */
 template <class Exporter>
-class GraphicsElementContext : public BaseContext {
- private:
-    /**
-     * Coordinate system for this element.
-     *
-     * This includes transforms from the element itself.
-     */
-    CoordinateSystem coordinate_system_;
-
+class GraphicsElementContext : public BaseContext, public TransformableContext {
  protected:
     /**
      * Exporter used to report generated lines.
@@ -51,7 +44,7 @@ class GraphicsElementContext : public BaseContext {
                            const Viewport& viewport,
                            const CoordinateSystem& coordinate_system)
         : BaseContext(document),
-          coordinate_system_{coordinate_system},
+          TransformableContext{coordinate_system},
           exporter_{exporter},
           viewport_{viewport} {}
 
@@ -65,32 +58,11 @@ class GraphicsElementContext : public BaseContext {
     template <class ParentContext>
     explicit GraphicsElementContext(const ParentContext& parent)
         : BaseContext(parent),
-          coordinate_system_{parent.inner_coordinate_system()},
+          TransformableContext{parent.inner_coordinate_system()},
           exporter_{parent.inner_exporter()},
           viewport_{parent.inner_viewport()} {}
 
-    /**
-     * Provides the derived classes read-only access to the coordinate system.
-     */
-    const CoordinateSystem& coordinate_system() const {
-        return coordinate_system_;
-    }
-
  public:
-    /**
-     * Handle a `transform` attribute being reported by SVG++.
-     *
-     * This transforms the coordinate system for this element.
-     */
-    void transform_matrix(const boost::array<double, 6>& matrix) {
-        Transform transform;
-        // clang-format off
-        transform.matrix() << matrix[0], matrix[2], matrix[4],
-                              matrix[1], matrix[3], matrix[5];
-        // clang-format on
-        coordinate_system_ = CoordinateSystem{coordinate_system_, transform};
-    }
-
     /**
      * Provides a length factory for SVG++ to resolve units.
      *
@@ -102,10 +74,11 @@ class GraphicsElementContext : public BaseContext {
 
     /**
      * Used by the `GraphicsElementContext(const ParentContext&)` constructor.
+     *
      * @return Coordinate system for child elements.
      */
     const CoordinateSystem& inner_coordinate_system() const {
-        return coordinate_system_;
+        return coordinate_system();
     }
 
     /**

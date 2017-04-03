@@ -13,7 +13,9 @@ set(SOURCE_FILES
         src/conversion.cpp
         src/parsing/viewport.cpp
         src/parsing/coordinate_system.cpp
-        src/parsing/gpgl_exporter.cpp)
+        src/parsing/gpgl_exporter.cpp
+        src/parsing/context/transformable.cpp
+        src/parsing/context/viewport_establishing.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 set_target_properties(${PROJECT_NAME} PROPERTIES

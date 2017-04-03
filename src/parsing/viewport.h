@@ -25,17 +25,9 @@ class Viewport {
 
  public:
     /**
-     * Creates a root viewport with the given print area size in millimeters.
+     * Creates a viewport with the given size.
      */
-    Viewport(double print_area_width, double print_area_height);
-
-    /**
-     * Sets the size of the viewport.
-     *
-     * @param width Width of the viewport in the surrounding viewports units.
-     * @param height Height of the viewport in the surrounding viewports units.
-     */
-    void set_size(double width, double height);
+    Viewport(double width, double height);
 
     /**
      * SVG++ length factory for elements inside this viewport.

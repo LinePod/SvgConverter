@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "parsing/context/g.h"
+#include "parsing/context/pattern.h"
 #include "parsing/context/shape.h"
 #include "parsing/context/svg.h"
 #include "parsing/gpgl_exporter.h"

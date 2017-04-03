@@ -81,7 +81,7 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
 
  public:
     template <class ParentContext>
-    explicit ShapeContext(const ParentContext& parent)
+    explicit ShapeContext(ParentContext& parent)
         : GraphicsElementContext<Exporter>{parent} {}
 
     /**
@@ -156,12 +156,13 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
         if (!fill_fragment_iri_.empty()) {
             auto referenced_node =
                 this->document_.find_by_id(fill_fragment_iri_);
-            // Fails to compile because no context for <pattern> elements has
-            // been defined yet
-            // DocumentTraversal::load_referenced_element<
-            //     svgpp::expected_elements<ExpectedElements>,
-            //     svgpp::processed_elements<ProcessedElements>
-            // >::load(referenced_node, *this);
+            PatternPseudoContext<Exporter> context{
+                *this, this->exporter_, this->viewport_,
+                this->coordinate_system(), outline_path_};
+            DocumentTraversal::load_referenced_element<
+                svgpp::expected_elements<ExpectedElements>,
+                svgpp::processed_elements<ProcessedElements>>::
+                load(referenced_node, context);
         }
     }
 

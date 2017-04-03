@@ -21,4 +21,10 @@ class SvgContext;
 template <class Exporter>
 class ShapeContext;
 
+template <class Exporter>
+class PatternPseudoContext;
+
+template <class Exporter>
+class PatternContext;
+
 #endif  // SVG_CONVERTER_PARSING_CONTEXT_FWD_H_

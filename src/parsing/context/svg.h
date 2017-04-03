@@ -29,7 +29,7 @@ class SvgContext : public GraphicsElementContext<Exporter>,
           ViewportEstablishingContext{global_viewport} {}
 
     template <class ParentContext>
-    explicit SvgContext(const ParentContext& parent)
+    explicit SvgContext(ParentContext& parent)
         : GraphicsElementContext<Exporter>{parent},
           // See remark on the constructor above.
           ViewportEstablishingContext{this->viewport_} {}

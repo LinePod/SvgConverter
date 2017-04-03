@@ -10,7 +10,7 @@ template <class Exporter>
 class GContext : public GraphicsElementContext<Exporter> {
  public:
     template <class ParentContext>
-    explicit GContext(const ParentContext& parent)
+    explicit GContext(ParentContext& parent)
         : GraphicsElementContext<Exporter>{parent} {}
 
     /**

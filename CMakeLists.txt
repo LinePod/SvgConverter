@@ -14,6 +14,7 @@ set(SOURCE_FILES
         src/parsing/coordinate_system.cpp
         src/parsing/gpgl_exporter.cpp
         src/parsing/viewport.cpp
+        src/parsing/context/pattern.cpp
         src/parsing/context/transformable.cpp
         src/parsing/context/viewport_establishing.cpp)
 

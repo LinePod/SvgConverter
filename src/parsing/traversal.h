@@ -65,10 +65,11 @@ using ProcessedAttributes = Concat<
     // Enable `stroke-dasharray` only for shape elements
     PairAll<svgpp::traits::shape_elements, attrib::stroke_dasharray>,
 
+    // Enable `fill` only for shape elements
     PairAll<svgpp::traits::shape_elements, attrib::fill>,
 
-    // Other attributes for all elements
-    mpl::set<attrib::transform>>;
+    // Enable transform attributes for all elements
+    mpl::set<attrib::transform, attrib::patternTransform>>;
 
 /**
  * Policy on how to handle paths (and other elements converted to paths).

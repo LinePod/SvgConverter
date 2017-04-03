@@ -56,7 +56,7 @@ class GraphicsElementContext : public BaseContext, public TransformableContext {
      * `inner_exporter()`.
      */
     template <class ParentContext>
-    explicit GraphicsElementContext(const ParentContext& parent)
+    explicit GraphicsElementContext(ParentContext& parent)
         : BaseContext(parent),
           TransformableContext{parent.inner_coordinate_system()},
           exporter_{parent.inner_exporter()},

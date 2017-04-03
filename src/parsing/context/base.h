@@ -1,5 +1,5 @@
-#ifndef SVG_CONVERTER_BASE_H
-#define SVG_CONVERTER_BASE_H
+#ifndef SVG_CONVERTER_PARSING_CONTEXT_BASE_H_
+#define SVG_CONVERTER_PARSING_CONTEXT_BASE_H_
 
 #include "../../svg.h"
 
@@ -33,4 +33,4 @@ class BaseContext {
     void on_exit_element() {}
 };
 
-#endif  // SVG_CONVERTER_BASE_H
+#endif  // SVG_CONVERTER_PARSING_CONTEXT_BASE_H_

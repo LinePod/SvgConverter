@@ -1,5 +1,5 @@
-#ifndef SVG_CONVERTER_FWD_H
-#define SVG_CONVERTER_FWD_H
+#ifndef SVG_CONVERTER_PARSING_CONTEXT_FWD_H_
+#define SVG_CONVERTER_PARSING_CONTEXT_FWD_H_
 
 // Forward declarations for context classes. These are needed to define the
 // child context factories in `factories.h`, which in turn are needed to define
@@ -21,4 +21,4 @@ class SvgContext;
 template <class Exporter>
 class ShapeContext;
 
-#endif  // SVG_CONVERTER_FWD_H
+#endif  // SVG_CONVERTER_PARSING_CONTEXT_FWD_H_

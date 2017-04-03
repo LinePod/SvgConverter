@@ -2,6 +2,7 @@
 #define SVG_CONVERTER_PARSING_GPGL_EXPORTER_H_
 
 #include <sstream>
+#include <vector>
 
 #include "../math_defs.h"
 
@@ -22,9 +23,13 @@ class GpglExporter {
 
     GpglExporter& operator=(const GpglExporter&) = default;
 
-    void move_to(Point point);
-
-    void plot_to(Point point);
+    /**
+     * Export the given polyline using the given dasharray.
+     *
+     * If the dasharray is empty, the lines are drawn fully solid.
+     */
+    void plot(const std::vector<Point>& polyline,
+              const std::vector<double>& dasharray);
 };
 
 #endif  // SVG_CONVERTER_PARSING_GPGL_EXPORTER_H_

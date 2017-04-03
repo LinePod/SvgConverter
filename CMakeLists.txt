@@ -11,9 +11,9 @@ set(SOURCE_FILES
         src/main.cpp
         src/svg.cpp
         src/conversion.cpp
-        src/parsing/viewport.cpp
         src/parsing/coordinate_system.cpp
         src/parsing/gpgl_exporter.cpp
+        src/parsing/viewport.cpp
         src/parsing/context/transformable.cpp
         src/parsing/context/viewport_establishing.cpp)
 

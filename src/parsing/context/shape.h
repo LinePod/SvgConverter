@@ -1,21 +1,19 @@
 #ifndef SVG_CONVERTER_PARSING_CONTEXT_SHAPE_H_
 #define SVG_CONVERTER_PARSING_CONTEXT_SHAPE_H_
 
-#include <iterator>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
-#include <boost/iterator/iterator_adaptor.hpp>
 #include <boost/mpl/set.hpp>
 #include <boost/optional.hpp>
-#include <boost/range.hpp>
 #include <svgpp/definitions.hpp>
 
 #include "../../bezier.h"
 #include "../../math_defs.h"
 #include "../traversal.h"
 #include "graphics_element.h"
+#include "pattern.h"
 
 namespace detail {
 
@@ -25,89 +23,6 @@ namespace detail {
  * See `subdivideCurve` in `bezier.h` for details.
  */
 constexpr double kBezierErrorThreshold = 5;
-
-/**
- * Iterator that cycles over a vector indefinitely.
- */
-template <class T>
-class CyclicIterator
-    : public boost::iterator_adaptor<
-          CyclicIterator<T>, typename std::vector<T>::const_iterator,
-          boost::use_default, std::forward_iterator_tag> {
- private:
-    const std::vector<T>& vec_;
-
- public:
-    explicit CyclicIterator(const std::vector<T>& vec)
-        : CyclicIterator<T>::iterator_adaptor_{vec.begin()}, vec_{vec} {}
-
-    void increment() {
-        this->base_reference()++;
-        if (this->base_reference() == vec_.end()) {
-            this->base_reference() = vec_.begin();
-        }
-    }
-};
-
-template <class T>
-CyclicIterator<T> make_cyclic_iter(const std::vector<T>& vec) {
-    return CyclicIterator<T>{vec};
-}
-
-/**
- * Plot or move to a point, based on a boolean switch.
- */
-template <class Exporter>
-void plot_or_move(Exporter exporter, Point target, bool move) {
-    if (move) {
-        exporter.move_to(target);
-    } else {
-        exporter.plot_to(target);
-    }
-}
-
-/**
- * Plots a dashed polyline.
- */
-template <class Exporter>
-void plot_dashed_line(Exporter exporter, const std::vector<Point>& points,
-                      const std::vector<double>& dasharray) {
-    Point current_point = points.front();
-    exporter.move_to(current_point);
-
-    if (dasharray.empty()) {
-        for (auto point : boost::make_iterator_range(points).advance_begin(1)) {
-            exporter.plot_to(point);
-        }
-
-        return;
-    }
-
-    auto current_dash_iter = make_cyclic_iter(dasharray);
-    double current_dash_remaining = *current_dash_iter;
-    bool is_hole = false;
-
-    for (auto point : boost::make_iterator_range(points).advance_begin(1)) {
-        Point delta = point - current_point;
-        double line_remaining = delta.norm();
-        Point unit_vec = delta.normalized();
-
-        while (current_dash_remaining < line_remaining) {
-            Point target = current_point + current_dash_remaining * unit_vec;
-            plot_or_move(exporter, target, is_hole);
-
-            line_remaining -= current_dash_remaining;
-            current_dash_iter++;
-            current_dash_remaining = *current_dash_iter;
-            current_point = target;
-            is_hole = !is_hole;
-        }
-
-        plot_or_move(exporter, point, is_hole);
-        current_dash_remaining -= line_remaining;
-        current_point = point;
-    }
-}
 
 }  // namespace detail
 
@@ -229,7 +144,7 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
     void on_exit_element() {
         for (auto& subpath : outline_path_) {
             if (subpath.size() > 1) {
-                detail::plot_dashed_line(this->exporter_, subpath, dasharray_);
+                this->exporter_.plot(subpath, dasharray_);
             }
         }
 

@@ -9,3 +9,5 @@ CoordinateSystem::CoordinateSystem(const CoordinateSystem& parent,
 Vector CoordinateSystem::to_root(Vector point) const {
     return transform_ * point;
 }
+
+const Transform& CoordinateSystem::transform() const { return transform_; }

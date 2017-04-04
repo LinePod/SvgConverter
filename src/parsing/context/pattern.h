@@ -1,6 +1,7 @@
 #ifndef SVG_CONVERTER_PARSING_CONTEXT_PATTERN_H_
 #define SVG_CONVERTER_PARSING_CONTEXT_PATTERN_H_
 
+#include <algorithm>
 #include <vector>
 
 #include "../../math_defs.h"
@@ -36,6 +37,24 @@ class PatternExporter {
     void plot(const std::vector<Vector>& polyline,
               const std::vector<double>& dasharray);
 };
+
+/**
+ * Generate a tiling for a pattern to completely fill the given clipping path.
+ *
+ * @param pattern_size Size of the pattern rectangle in the coordinate system it
+ *                     is defined in.
+ * @param coordinate_system Coordinate system the pattern is defined in.
+ * @param clipping_path Path in global coordinates that should be completely
+ *                      tiled.
+ * @return List of offsets, so that when the pattern is repeated at all these
+ *         offsets it will completely cover the given clipping path. If a
+ *         pattern with no offset is needed (offset of (0, 0)), it will be
+ *         included.
+ */
+// TODO(David): Change this to not allocate for the list of points
+std::vector<Vector> compute_tiling_offsets(
+    Vector pattern_size, const CoordinateSystem& coordinate_system,
+    const std::vector<std::vector<Vector>>& clipping_path);
 
 }  // namespace detail
 
@@ -118,6 +137,8 @@ class PatternContext : public BaseContext,
     const CoordinateSystem& inner_coordinate_system() const;
 
     detail::PatternExporter inner_exporter();
+
+    void on_exit_element();
 };
 
 template <class Exporter>
@@ -162,6 +183,22 @@ const CoordinateSystem& PatternContext<Exporter>::inner_coordinate_system()
     // therefore we return the full coordinate system including the transforms
     // from the referencing shape element.
     return coordinate_system();
+}
+
+template <class Exporter>
+void PatternContext<Exporter>::on_exit_element() {
+    auto& pattern_viewport = inner_viewport();
+    Vector pattern_size{pattern_viewport.width(), pattern_viewport.height()};
+    auto offsets = detail::compute_tiling_offsets(
+        pattern_size, coordinate_system(), clipping_path_);
+    for (auto& line : pattern_lines_) {
+        std::vector<Vector> line_with_offset{line.size()};
+        for (auto offset : offsets) {
+            std::transform(line.begin(), line.end(), line_with_offset.begin(),
+                           [offset](Vector point) { return point + offset; });
+            exporter_.plot(line_with_offset, {});
+        }
+    }
 }
 
 #endif  // SVG_CONVERTER_PARSING_CONTEXT_PATTERN_H_

@@ -33,6 +33,16 @@ class Viewport {
      * SVG++ length factory for elements inside this viewport.
      */
     const LengthFactory& length_factory() const;
+
+    /**
+     * Width of the viewport.
+     */
+    double width() const;
+
+    /**
+     * Height of the viewport.
+     */
+    double height() const;
 };
 
 #endif  // SVG_CONVERTER_PARSING_VIEWPORT_H_

@@ -1,8 +1,13 @@
 #ifndef SVG_CONVERTER_PARSING_CONTEXT_PATTERN_H_
 #define SVG_CONVERTER_PARSING_CONTEXT_PATTERN_H_
 
+#include <eigen3/Eigen/SVD>
+
 #include <algorithm>
+#include <cstdint>
 #include <vector>
+
+#include <boost/iterator/function_input_iterator.hpp>
 
 #include "../../math_defs.h"
 #include "../coordinate_system.h"
@@ -46,15 +51,57 @@ class PatternExporter {
  * @param coordinate_system Coordinate system the pattern is defined in.
  * @param clipping_path Path in global coordinates that should be completely
  *                      tiled.
- * @return List of offsets, so that when the pattern is repeated at all these
- *         offsets it will completely cover the given clipping path. If a
- *         pattern with no offset is needed (offset of (0, 0)), it will be
- *         included.
+ * @param callback Will be called several times with a single offset as a
+ *                 parameter each time. The offsets are in global space, and
+ *                 are chosen so that the pattern is repeated with the given
+ *                 offsets, it will completely cover the given clipping path.
+ *                 If the pattern is needed at its original position (offset of
+ *                 (0, 0)), that will be reported as well.
  */
-// TODO(David): Change this to not allocate for the list of points
-std::vector<Vector> compute_tiling_offsets(
+template <class Callback>
+void compute_tiling_offsets(
     Vector pattern_size, const CoordinateSystem& coordinate_system,
-    const std::vector<std::vector<Vector>>& clipping_path);
+    const std::vector<std::vector<Vector>>& clipping_path, Callback callback) {
+    // We use a very simple approach to tiling here: In the coordinate system
+    // it is defined in, the pattern is a rectangle located at (0, 0). We add an
+    // additional scale, so that the size of the pattern is (1, 1). Then we take
+    // the inverse of that and transform our clipping path into this coordinate
+    // system. We build the bounding box of the clipping path and round it
+    // outward to the nearest integer coordinates. Now we can just enumerate
+    // all integer coordinates in the bounding box and transform them into
+    // root space.
+    //
+    // An alternative approach that would not require inverting a matrix would
+    // be to use the fact, that the affine transformation to root space can
+    // only transform the rectangle into a parallelogram, and than doing
+    // parallelogram tiling in root space.
+
+    Transform to_root = coordinate_system.transform();
+    to_root.scale(pattern_size);
+    Transform from_root =
+        to_root.inverse(Eigen::TransformTraits::AffineCompact);
+
+    Rect bounding_box;
+    for (auto& polyline : clipping_path) {
+        for (auto point : polyline) {
+            bounding_box.extend(from_root * point);
+        }
+    }
+
+    std::vector<Vector> result;
+    Vector base_point = to_root * Vector{0, 0};
+
+    // int64_t can hold all reasonable values that the double coefficients can
+    // have
+    auto int_min_point = bounding_box.min().cast<std::int64_t>();
+    auto int_max_point = bounding_box.max().cast<std::int64_t>();
+
+    for (std::int64_t x = int_min_point(0); x <= int_max_point(0); x++) {
+        for (std::int64_t y = int_min_point(1); y <= int_max_point(1); y++) {
+            callback(to_root * Vector{x, y} - base_point);
+        }
+    }
+}
 
 }  // namespace detail
 
@@ -189,16 +236,14 @@ template <class Exporter>
 void PatternContext<Exporter>::on_exit_element() {
     auto& pattern_viewport = inner_viewport();
     Vector pattern_size{pattern_viewport.width(), pattern_viewport.height()};
-    auto offsets = detail::compute_tiling_offsets(
-        pattern_size, coordinate_system(), clipping_path_);
-    for (auto& line : pattern_lines_) {
-        std::vector<Vector> line_with_offset{line.size()};
-        for (auto offset : offsets) {
+    detail::compute_tiling_offsets(pattern_size, coordinate_system(), clipping_path_, [this](Vector offset) {
+        for (auto& line : pattern_lines_) {
+            std::vector<Vector> line_with_offset{line.size()};
             std::transform(line.begin(), line.end(), line_with_offset.begin(),
                            [offset](Vector point) { return point + offset; });
             exporter_.plot(line_with_offset, {});
         }
-    }
+    });
 }
 
 #endif  // SVG_CONVERTER_PARSING_CONTEXT_PATTERN_H_

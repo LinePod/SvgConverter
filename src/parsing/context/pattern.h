@@ -17,7 +17,7 @@ namespace detail {
  */
 class PatternExporter {
  private:
-    std::vector<std::vector<Point>>& paths_;
+    std::vector<std::vector<Vector>>& paths_;
 
  public:
     /**
@@ -26,14 +26,14 @@ class PatternExporter {
      * @param paths List of paths to write to. Reference must be valid for the
      *              lifetime of the exporter and its copies.
      */
-    explicit PatternExporter(std::vector<std::vector<Point>>& paths);
+    explicit PatternExporter(std::vector<std::vector<Vector>>& paths);
 
     /**
      * Export the given polyline using the given dasharray.
      *
      * If the dasharray is empty, the lines are drawn fully solid.
      */
-    void plot(const std::vector<Point>& polyline,
+    void plot(const std::vector<Vector>& polyline,
               const std::vector<double>& dasharray);
 };
 
@@ -57,7 +57,7 @@ class PatternPseudoContext : public BaseContext {
     PatternPseudoContext(const BaseContext& parent, Exporter exporter,
                          const Viewport& shape_viewport,
                          const CoordinateSystem& shape_coordinate_system,
-                         const std::vector<std::vector<Point>>& clipping_path);
+                         const std::vector<std::vector<Vector>>& clipping_path);
 
     /**
      * Exporter to export the tiled pattern with.
@@ -79,7 +79,7 @@ class PatternPseudoContext : public BaseContext {
      *
      * Each subvector describes a single closed subpath.
      */
-    const std::vector<std::vector<Point>>& clipping_path_;
+    const std::vector<std::vector<Vector>>& clipping_path_;
 };
 
 /**
@@ -102,12 +102,12 @@ class PatternContext : public BaseContext,
 
     const Viewport& shape_viewport_;
 
-    const std::vector<std::vector<Point>>& clipping_path_;
+    const std::vector<std::vector<Vector>>& clipping_path_;
 
     /**
      * Gets filled with a single instance of the pattern via `PatternExporter`.
      */
-    std::vector<std::vector<Point>> pattern_lines_;
+    std::vector<std::vector<Vector>> pattern_lines_;
 
  public:
     explicit PatternContext(
@@ -125,7 +125,7 @@ PatternPseudoContext<Exporter>::PatternPseudoContext(
     const BaseContext& parent, Exporter exporter,
     const Viewport& shape_viewport,
     const CoordinateSystem& shape_coordinate_system,
-    const std::vector<std::vector<Point>>& clipping_path)
+    const std::vector<std::vector<Vector>>& clipping_path)
     : BaseContext(parent),
       exporter_(exporter),
       shape_viewport_(shape_viewport),

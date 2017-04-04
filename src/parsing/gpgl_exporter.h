@@ -28,7 +28,7 @@ class GpglExporter {
      *
      * If the dasharray is empty, the lines are drawn fully solid.
      */
-    void plot(const std::vector<Point>& polyline,
+    void plot(const std::vector<Vector>& polyline,
               const std::vector<double>& dasharray);
 };
 

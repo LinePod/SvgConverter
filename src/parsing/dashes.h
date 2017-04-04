@@ -54,9 +54,9 @@ CyclicIterator<T> make_cyclic_iter(const std::vector<T>& vec) {
  * each dash. The dashes will be exported consecutively along the polyline.
  */
 template <class Callback>
-void to_dashes(const std::vector<Point>& polyline,
+void to_dashes(const std::vector<Vector>& polyline,
                const std::vector<double>& dasharray, Callback callback) {
-    Point current_point = polyline.front();
+    Vector current_point = polyline.front();
 
     if (dasharray.empty()) {
         for (auto point :
@@ -73,12 +73,12 @@ void to_dashes(const std::vector<Point>& polyline,
     bool is_hole = false;
 
     for (auto point : boost::make_iterator_range(polyline).advance_begin(1)) {
-        Point delta = point - current_point;
+        Vector delta = point - current_point;
         double line_remaining = delta.norm();
-        Point unit_vec = delta.normalized();
+        Vector unit_vec = delta.normalized();
 
         while (current_dash_remaining < line_remaining) {
-            Point target = current_point + current_dash_remaining * unit_vec;
+            Vector target = current_point + current_dash_remaining * unit_vec;
             if (!is_hole) {
                 callback(current_point, target);
             }

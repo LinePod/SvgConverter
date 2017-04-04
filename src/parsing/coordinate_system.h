@@ -41,7 +41,7 @@ class CoordinateSystem {
     /**
      * Transforms a point from this coordinate system to the root one.
      */
-    Point to_root(Point point) const;
+    Vector to_root(Vector point) const;
 };
 
 #endif  // SVG_CONVERTER_PARSING_COORDINATE_SYSTEM_H_

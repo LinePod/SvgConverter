@@ -3,6 +3,6 @@
 
 #include <eigen3/Eigen/Core>
 
-using Point = Eigen::Vector2d;
+using Vector = Eigen::Vector2d;
 
 #endif  // SVG_CONVERTER_MATH_DEFS_H_

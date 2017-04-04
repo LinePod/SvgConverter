@@ -45,7 +45,7 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
      *
      * In most cases this should only be accessed through `assert_subpath`.
      */
-    std::vector<std::vector<Point>> outline_path_;
+    std::vector<std::vector<Vector>> outline_path_;
 
     /**
      * Describes the pattern of the stroke, set by `stroke-dasharray`.
@@ -70,7 +70,7 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
      *
      * The returned subpath will always contain at least a starting point.
      */
-    std::vector<Point>& assert_subpath() {
+    std::vector<Vector>& assert_subpath() {
         if (!outline_path_.empty()) {
             return outline_path_.back();
         }
@@ -88,7 +88,7 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
      * SVG++ event for a non drawn movement in a shape path.
      */
     void path_move_to(double x, double y, svgpp::tag::coordinate::absolute) {
-        Point global_point = this->coordinate_system().to_root({x, y});
+        Vector global_point = this->coordinate_system().to_root({x, y});
         if (outline_path_.empty()) {
             // This is the initial move command. We add a subpath with the
             // starting point
@@ -120,12 +120,12 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
                               double x, double y,
                               svgpp::tag::coordinate::absolute) {
         auto& subpath = assert_subpath();
-        Point ctrl1 = this->coordinate_system().to_root({x1, y1});
-        Point ctrl2 = this->coordinate_system().to_root({x2, y2});
-        Point end = this->coordinate_system().to_root({x, y});
+        Vector ctrl1 = this->coordinate_system().to_root({x1, y1});
+        Vector ctrl2 = this->coordinate_system().to_root({x2, y2});
+        Vector end = this->coordinate_system().to_root({x, y});
         subdivideCurve(detail::kBezierErrorThreshold, subpath.back(), ctrl1,
                        ctrl2, end,
-                       [&subpath](Point p) { subpath.push_back(p); });
+                       [&subpath](Vector p) { subpath.push_back(p); });
     }
 
     /**

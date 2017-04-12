@@ -3,6 +3,8 @@
 
 #include <svgpp/factory/unitless_length.hpp>
 
+#include "../math_defs.h"
+
 /**
  * Describes the mapping between user units and absolute units like millimeters.
  *
@@ -35,14 +37,9 @@ class Viewport {
     const LengthFactory& length_factory() const;
 
     /**
-     * Width of the viewport.
+     * Size of the viewport.
      */
-    double width() const;
-
-    /**
-     * Height of the viewport.
-     */
-    double height() const;
+    Vector size() const;
 };
 
 #endif  // SVG_CONVERTER_PARSING_VIEWPORT_H_

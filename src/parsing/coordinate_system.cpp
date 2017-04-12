@@ -6,8 +6,4 @@ CoordinateSystem::CoordinateSystem(const CoordinateSystem& parent,
                                    const Transform& transform)
     : transform_{parent.transform_ * transform} {}
 
-Vector CoordinateSystem::to_root(Vector point) const {
-    return transform_ * point;
-}
-
 const Transform& CoordinateSystem::transform() const { return transform_; }

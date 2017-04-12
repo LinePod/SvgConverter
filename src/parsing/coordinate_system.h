@@ -32,11 +32,6 @@ class CoordinateSystem {
                      const Transform& transform);
 
     /**
-     * Transforms a point from this coordinate system to the root one.
-     */
-    Vector to_root(Vector point) const;
-
-    /**
      * Accesses a transform from this coordinate system to the root one.
      */
     const Transform& transform() const;

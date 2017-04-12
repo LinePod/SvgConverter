@@ -197,7 +197,7 @@ const CoordinateSystem& PatternContext<Exporter>::inner_coordinate_system()
 template <class Exporter>
 void PatternContext<Exporter>::on_exit_element() {
     auto& pattern_viewport = inner_viewport();
-    Vector pattern_size{pattern_viewport.width(), pattern_viewport.height()};
+    Vector pattern_size = pattern_viewport.size();
     auto offsets = detail::compute_tiling_offsets(
         pattern_size, coordinate_system(), clipping_path_);
     for (auto offset : offsets) {

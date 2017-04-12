@@ -1,10 +1,8 @@
 #include "pattern.h"
 
-#include <cstdint>
-
 #include <eigen3/Eigen/SVD>
 
-#include "../dashes.h"
+#include <cstdint>
 
 detail::PatternExporter::PatternExporter(std::vector<detail::DashedPath>& paths)
     : paths_{paths} {}

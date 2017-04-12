@@ -20,12 +20,13 @@
  * generated polyline (from start to back, excluding the start point).
  */
 template <class Callback>
-void subdivideCurve(double error_threshold, Vector start, Vector ctrl1,
-                    Vector ctrl2, Vector end, Callback callback) {
+void subdivide_curve(double error_threshold, Vector start, Vector ctrl1,
+                     Vector ctrl2, Vector end, Callback callback) {
     using Line = Eigen::ParametrizedLine<double, 2>;
 
-    Line straightLine{start, end - start};
-    double error = straightLine.distance(ctrl1) + straightLine.distance(ctrl2);
+    Line straight_line{start, end - start};
+    double error =
+        straight_line.distance(ctrl1) + straight_line.distance(ctrl2);
     if (error > error_threshold) {
         // De Casteljau subdivision
         Vector mid12 = (start + ctrl1) / 2;
@@ -34,9 +35,9 @@ void subdivideCurve(double error_threshold, Vector start, Vector ctrl1,
         Vector mid123 = (mid12 + mid23) / 2;
         Vector mid234 = (mid23 + mid34) / 2;
         Vector mid1234 = (mid123 + mid234) / 2;
-        subdivideCurve(error_threshold, start, mid12, mid123, mid1234,
-                       callback);
-        subdivideCurve(error_threshold, mid1234, mid234, mid34, end, callback);
+        subdivide_curve(error_threshold, start, mid12, mid123, mid1234,
+                        callback);
+        subdivide_curve(error_threshold, mid1234, mid234, mid34, end, callback);
     } else {
         callback(end);
     }

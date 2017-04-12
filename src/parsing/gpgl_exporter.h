@@ -2,9 +2,9 @@
 #define SVG_CONVERTER_PARSING_GPGL_EXPORTER_H_
 
 #include <sstream>
-#include <vector>
 
 #include "../math_defs.h"
+#include "path.h"
 
 class GpglExporter {
  private:
@@ -24,12 +24,11 @@ class GpglExporter {
     GpglExporter& operator=(const GpglExporter&) = default;
 
     /**
-     * Export the given polyline using the given dasharray.
+     * Export the given path using the given dasharray.
      *
      * If the dasharray is empty, the lines are drawn fully solid.
      */
-    void plot(const std::vector<Vector>& polyline,
-              const std::vector<double>& dasharray);
+    void plot(const Path& path, const std::vector<double>& dasharray);
 };
 
 #endif  // SVG_CONVERTER_PARSING_GPGL_EXPORTER_H_

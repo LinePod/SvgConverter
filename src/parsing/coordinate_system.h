@@ -1,14 +1,7 @@
 #ifndef SVG_CONVERTER_PARSING_COORDINATE_SYSTEM_H_
 #define SVG_CONVERTER_PARSING_COORDINATE_SYSTEM_H_
 
-#include <eigen3/Eigen/Geometry>
-
 #include "../math_defs.h"
-
-/**
- * An SVG affine transformation.
- */
-using Transform = Eigen::AffineCompact2d;
 
 /**
  * An SVG coordinate system.

@@ -1,7 +1,5 @@
 #include "gpgl_exporter.h"
 
-#include "dashes.h"
-
 /**
  * Factor to convert from millimeters to GPGL units.
  */
@@ -18,12 +16,15 @@ Vector to_gpgl(Vector point) {
 GpglExporter::GpglExporter(std::ostringstream& out_stream)
     : out_stream_{out_stream} {}
 
-void GpglExporter::plot(const std::vector<Vector>& polyline,
+void GpglExporter::plot(const Path& path,
                         const std::vector<double>& dasharray) {
-    to_dashes(polyline, dasharray, [this](Vector start, Vector end) {
-        start = to_gpgl(start);
-        end = to_gpgl(end);
-        out_stream_ << "M " << start(0) << ',' << start(1) << '\x03';
-        out_stream_ << "D " << end(0) << ',' << end(1) << '\x03';
+    path.to_polylines(dasharray, [this](Vector start_point) {
+        start_point = to_gpgl(start_point);
+        out_stream_ << "M " << start_point(0) << ',' << start_point(1)
+                    << '\x03';
+        return [this](Vector point) {
+            point = to_gpgl(point);
+            out_stream_ << "D " << point(0) << ',' << point(1) << '\x03';
+        };
     });
 }

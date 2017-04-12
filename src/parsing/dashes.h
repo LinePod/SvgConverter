@@ -48,55 +48,72 @@ CyclicIterator<T> make_cyclic_iter(const std::vector<T>& vec) {
 }  // namespace detail
 
 /**
- * Convert a polyline with an associated dasharray to single dashes.
- *
- * The given callback will be called like `callback(start_point, end_point)` for
- * each dash. The dashes will be exported consecutively along the polyline.
+ * Converts a polyline into a dashed line point by point.
  */
 template <class Callback>
-void to_dashes(const std::vector<Vector>& polyline,
-               const std::vector<double>& dasharray, Callback callback) {
-    Vector current_point = polyline.front();
+class PolylineDashifier {
+ private:
+    Callback dash_callback_;
 
-    if (dasharray.empty()) {
-        for (auto point :
-             boost::make_iterator_range(polyline).advance_begin(1)) {
-            callback(current_point, point);
-            current_point = point;
+    detail::CyclicIterator<double> current_dash_iter_;
+    double current_dash_remaining_;
+    bool is_current_dash_empty_ = false;
+    Vector current_point_;
+
+ public:
+    /**
+     * Creates a new instance.
+     *
+     * @param callback Will be called with a start and an end point for each
+     *                 dash.
+     * @param starting_point Start point of the polyline.
+     * @param dasharray Dasharray as specified by the SVG spec. Must not be
+     *                  empty. Reference must be valid for the lifetime of this
+     *                  object.
+     */
+    PolylineDashifier(Callback callback, Vector starting_point,
+                      const std::vector<double>& dasharray);
+
+    /**
+     * Processes another point on the polyline.
+     */
+    void process(Vector point);
+};
+
+template <class Callback>
+PolylineDashifier<Callback>::PolylineDashifier(
+    Callback callback, Vector starting_point,
+    const std::vector<double>& dasharray)
+    : dash_callback_{callback},
+      current_dash_iter_{detail::make_cyclic_iter(dasharray)},
+      current_dash_remaining_{*current_dash_iter_},
+      current_point_{starting_point} {}
+
+template <class Callback>
+void PolylineDashifier<Callback>::process(Vector point) {
+    Vector delta = point - current_point_;
+    double line_remaining = delta.norm();
+    Vector unit_vec = delta.normalized();
+
+    while (current_dash_remaining_ < line_remaining) {
+        Vector target = current_point_ + current_dash_remaining_ * unit_vec;
+        if (!is_current_dash_empty_) {
+            dash_callback_(current_point_, target);
         }
 
-        return;
+        line_remaining -= current_dash_remaining_;
+        current_dash_iter_++;
+        current_dash_remaining_ = *current_dash_iter_;
+        current_point_ = target;
+        is_current_dash_empty_ = !is_current_dash_empty_;
     }
 
-    auto current_dash_iter = detail::make_cyclic_iter(dasharray);
-    double current_dash_remaining = *current_dash_iter;
-    bool is_hole = false;
-
-    for (auto point : boost::make_iterator_range(polyline).advance_begin(1)) {
-        Vector delta = point - current_point;
-        double line_remaining = delta.norm();
-        Vector unit_vec = delta.normalized();
-
-        while (current_dash_remaining < line_remaining) {
-            Vector target = current_point + current_dash_remaining * unit_vec;
-            if (!is_hole) {
-                callback(current_point, target);
-            }
-
-            line_remaining -= current_dash_remaining;
-            current_dash_iter++;
-            current_dash_remaining = *current_dash_iter;
-            current_point = target;
-            is_hole = !is_hole;
-        }
-
-        if (!is_hole) {
-            callback(current_point, point);
-        }
-
-        current_dash_remaining -= line_remaining;
-        current_point = point;
+    if (!is_current_dash_empty_) {
+        dash_callback_(current_point_, point);
     }
+
+    current_dash_remaining_ -= line_remaining;
+    current_point_ = point;
 }
 
 #endif  // SVG_CONVERTER_PARSING_DASHES_H_

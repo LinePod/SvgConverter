@@ -34,13 +34,13 @@ std::vector<Vector> detail::compute_tiling_offsets(
         to_root.inverse(Eigen::TransformTraits::AffineCompact);
 
     Rect bounding_box;
-    auto polyline_callback = [&bounding_box, &from_root](Vector start_point) {
-        bounding_box.extend(from_root * start_point);
-        return [&bounding_box, &from_root](Vector point) {
-            bounding_box.extend(from_root * point);
-        };
-    };
-    clipping_path.to_polylines({}, polyline_callback);
+    clipping_path.to_polylines(
+        {}, [&bounding_box, &from_root](Vector start_point) {
+            bounding_box.extend(from_root * start_point);
+            return [&bounding_box, &from_root](Vector point) {
+                bounding_box.extend(from_root * point);
+            };
+        });
 
     std::vector<Vector> result;
     Vector base_point = to_root * Vector{0, 0};

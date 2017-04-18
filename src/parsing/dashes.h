@@ -48,49 +48,62 @@ CyclicIterator<T> make_cyclic_iter(const std::vector<T>& vec) {
 }  // namespace detail
 
 /**
- * Converts a polyline into a dashed line point by point.
+ * A visitor for `Path::to_polylines` that dashifies the visited polyline.
+ *
+ * The dashified lines are reported to a wrapped visitor factory.
  */
-template <class Callback>
-class PolylineDashifier {
+template <class PolylineVisitorFactory>
+class DashifyingPolylineVisitor {
  private:
-    Callback dash_callback_;
+    PolylineVisitorFactory wrapped_visitor_factory_;
 
     detail::CyclicIterator<double> current_dash_iter_;
     double current_dash_remaining_;
     bool is_current_dash_empty_ = false;
     Vector current_point_;
 
+    /**
+     * Report a dash to the wrapped visitor factory.
+     */
+    void report_dash(Vector start_point, Vector end_point);
+
  public:
     /**
      * Creates a new instance.
      *
-     * @param callback Will be called with a start and an end point for each
-     *                 dash.
-     * @param starting_point Start point of the polyline.
-     * @param dasharray Dasharray as specified by the SVG spec. Must not be
-     *                  empty. Reference must be valid for the lifetime of this
-     *                  object.
+     * @param polyline_visitor_factory Wrapped visitor factory to report the
+     *                                 created dash lines to.
+     * @param start_point Start point of the polyline to dashify.
+     * @param dasharray Dasharray specifying the length and spacing of the
+     *                  dashes. Reference must be valid for the entire lifetime
+     *                  of this object.
      */
-    PolylineDashifier(Callback callback, Vector starting_point,
-                      const std::vector<double>& dasharray);
+    DashifyingPolylineVisitor(PolylineVisitorFactory polyline_visitor_factory,
+                              Vector start_point,
+                              const std::vector<double>& dasharray);
 
-    /**
-     * Processes another point on the polyline.
-     */
-    void process(Vector point);
+    void operator()(Vector point);
 };
 
-template <class Callback>
-PolylineDashifier<Callback>::PolylineDashifier(
-    Callback callback, Vector starting_point,
+template <class PolylineVisitorFactory>
+DashifyingPolylineVisitor<PolylineVisitorFactory>::DashifyingPolylineVisitor(
+    PolylineVisitorFactory polyline_visitor_factory, Vector start_point,
     const std::vector<double>& dasharray)
-    : dash_callback_{callback},
+    : wrapped_visitor_factory_{polyline_visitor_factory},
       current_dash_iter_{detail::make_cyclic_iter(dasharray)},
       current_dash_remaining_{*current_dash_iter_},
-      current_point_{starting_point} {}
+      current_point_{start_point} {}
 
-template <class Callback>
-void PolylineDashifier<Callback>::process(Vector point) {
+template <class PolylineVisitorFactory>
+void DashifyingPolylineVisitor<PolylineVisitorFactory>::report_dash(
+    Vector start_point, Vector end_point) {
+    auto&& visitor = wrapped_visitor_factory_(start_point);
+    visitor(end_point);
+}
+
+template <class PolylineVisitorFactory>
+void DashifyingPolylineVisitor<PolylineVisitorFactory>::operator()(
+    Vector point) {
     Vector delta = point - current_point_;
     double line_remaining = delta.norm();
     Vector unit_vec = delta.normalized();
@@ -98,7 +111,7 @@ void PolylineDashifier<Callback>::process(Vector point) {
     while (current_dash_remaining_ < line_remaining) {
         Vector target = current_point_ + current_dash_remaining_ * unit_vec;
         if (!is_current_dash_empty_) {
-            dash_callback_(current_point_, target);
+            report_dash(current_point_, target);
         }
 
         line_remaining -= current_dash_remaining_;
@@ -109,7 +122,7 @@ void PolylineDashifier<Callback>::process(Vector point) {
     }
 
     if (!is_current_dash_empty_) {
-        dash_callback_(current_point_, point);
+        report_dash(current_point_, point);
     }
 
     current_dash_remaining_ -= line_remaining;

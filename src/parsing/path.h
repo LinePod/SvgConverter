@@ -51,19 +51,19 @@ using PathCommand = boost::variant<MoveCommand, LineCommand, BezierCommand,
 namespace detail {
 
 /**
- * Visitor used to implement `Path::to_polylines`.
+ * Command visitor used to implement `Path::to_polylines`.
  */
-template <class PolylineCallback>
+template <class PolylineVisitorFactory>
 class PathToPolylineVisitor : public boost::static_visitor<> {
  private:
-    using PointCallback = std::result_of_t<PolylineCallback(Vector)>;
+    using PolylineVisitor = std::result_of_t<PolylineVisitorFactory(Vector)>;
 
     struct SubpathState {
-        PointCallback point_callback;
+        PolylineVisitor visitor;
         Vector starting_point;
     };
 
-    PolylineCallback polyline_callback_;
+    PolylineVisitorFactory visitor_factory_;
     Vector current_position_;
 
     /**
@@ -77,7 +77,7 @@ class PathToPolylineVisitor : public boost::static_visitor<> {
 
  public:
     PathToPolylineVisitor(Vector start_position,
-                          PolylineCallback polyline_callback);
+                          PolylineVisitorFactory polyline_visitor_factory);
 
     void operator()(const MoveCommand& command);
     void operator()(const LineCommand& command);
@@ -85,23 +85,23 @@ class PathToPolylineVisitor : public boost::static_visitor<> {
     void operator()(const CloseSubpathCommand& command);
 };
 
-template <class PolylineCallback>
-PathToPolylineVisitor<PolylineCallback>::PathToPolylineVisitor(
-    Vector start_position, PolylineCallback polyline_callback)
-    : polyline_callback_{polyline_callback},
+template <class PolylineVisitorFactory>
+PathToPolylineVisitor<PolylineVisitorFactory>::PathToPolylineVisitor(
+    Vector start_position, PolylineVisitorFactory polyline_visitor_factory)
+    : visitor_factory_{polyline_visitor_factory},
       current_position_{start_position} {}
 
 template <class PolylineCallback>
 typename PathToPolylineVisitor<PolylineCallback>::SubpathState&
 PathToPolylineVisitor<PolylineCallback>::assert_in_subpath() {
     if (!subpath_state_) {
-        PointCallback point_callback = polyline_callback_(current_position_);
+        PolylineVisitor visitor = visitor_factory_(current_position_);
         // This weird construction is necessary to allow move only point
         // callbacks. All tries to use the = operator resulted in the compiler
         // trying to call a deleted copy assignment operator and not the move
         // assignment operator.
         subpath_state_.emplace(
-            SubpathState{std::move(point_callback), current_position_});
+            SubpathState{std::move(visitor), current_position_});
     }
 
     return *subpath_state_;
@@ -118,7 +118,7 @@ template <class PolylineCallback>
 void PathToPolylineVisitor<PolylineCallback>::operator()(
     const LineCommand& command) {
     SubpathState& subpath_state = assert_in_subpath();
-    subpath_state.point_callback(command.target);
+    subpath_state.visitor(command.target);
     current_position_ = command.target;
 }
 
@@ -126,18 +126,17 @@ template <class PolylineCallback>
 void PathToPolylineVisitor<PolylineCallback>::operator()(
     const BezierCommand& command) {
     SubpathState& subpath_state = assert_in_subpath();
-    subdivide_curve(kBezierErrorThreshold, current_position_,
-                    command.control_point_1, command.control_point_2,
-                    command.target, [&subpath_state](Vector point) {
-                        subpath_state.point_callback(point);
-                    });
+    subdivide_curve(
+        kBezierErrorThreshold, current_position_, command.control_point_1,
+        command.control_point_2, command.target,
+        [&subpath_state](Vector point) { subpath_state.visitor(point); });
     current_position_ = command.target;
 }
 
 template <class PolylineCallback>
 void PathToPolylineVisitor<PolylineCallback>::operator()(
     const CloseSubpathCommand&) {
-    subpath_state_->point_callback(subpath_state_->starting_point);
+    subpath_state_->visitor(subpath_state_->starting_point);
     current_position_ = subpath_state_->starting_point;
     subpath_state_ = boost::none;
 }
@@ -153,9 +152,9 @@ CloseSubpathCommand transformed(CloseSubpathCommand command, const Transform&);
 /**
  * Implementation of path to polyline conversion without dashes.
  */
-template <class PolylineCallback>
+template <class PolylineVisitorFactory>
 void path_to_polylines(const std::vector<PathCommand>& commands,
-                       PolylineCallback polyline_callback) {
+                       PolylineVisitorFactory polyline_visitor_factory) {
     if (commands.empty()) {
         return;
     }
@@ -166,10 +165,10 @@ void path_to_polylines(const std::vector<PathCommand>& commands,
         throw std::runtime_error{"Invalid path: No leading move command"};
     }
 
-    detail::PathToPolylineVisitor<PolylineCallback> visitor{
-        move_cmd_ptr->target, polyline_callback};
+    PathToPolylineVisitor<PolylineVisitorFactory> command_visitor{
+        move_cmd_ptr->target, polyline_visitor_factory};
     for (const auto& command : commands) {
-        boost::apply_visitor(visitor, command);
+        boost::apply_visitor(command_visitor, command);
     }
 }
 
@@ -200,42 +199,30 @@ class Path {
      *
      * @param dasharray SVG dasharray to apply to all parts of the path. When
      *                  empty, all polylines will be solid.
-     * @param polyline_callback Called with the first parameter of a new
-     *                          polyline as the parameter. Must return a
-     *                          callback which will be called once for each
-     *                          subsequent point on the polyline.
+     * @param polyline_visitor_factory Factory to create a visitor for a
+     *                                 polyline. The factory will be called with
+     *                                 the starting point as the only parameter.
+     *                                 It must return a callable visitor, which
+     *                                 will be called for each point in the
+     *                                 polyline. When the polyline is finished,
+     *                                 the visitor will be destructed.
      */
-    template <class PolylineCallback>
+    template <class PolylineVisitorFactory>
     void to_polylines(const std::vector<double>& dasharray,
-                      PolylineCallback polyline_callback) const;
+                      PolylineVisitorFactory polyline_visitor_factory) const;
 };
 
-template <class PolylineCallback>
+template <class PolylineVisitorFactory>
 void Path::to_polylines(const std::vector<double>& dasharray,
-                        PolylineCallback polyline_callback) const {
+                        PolylineVisitorFactory polyline_visitor_factory) const {
     if (dasharray.empty()) {
-        detail::path_to_polylines(commands_, polyline_callback);
+        detail::path_to_polylines(commands_, polyline_visitor_factory);
     } else {
-        // We use the same function but run the results through a dashifier
-
-        // Move the polyline callback into this one to allow move only polyline
-        // callbacks.
-        auto dash_callback = [polyline_callback = std::move(polyline_callback)](
-            Vector start, Vector end) {
-            auto point_callback = polyline_callback(start);
-            point_callback(end);
-        };
-
-        using Dashifier = PolylineDashifier<decltype(dash_callback)>;
-
-        auto dashifying_polyline_callback = [dash_callback,
-                                             &dasharray](Vector start_point) {
-            Dashifier dashifier{dash_callback, start_point, dasharray};
-            return [dashifier = std::move(dashifier)](Vector point) mutable {
-                dashifier.process(point);
-            };
-        };
-        detail::path_to_polylines(commands_, dashifying_polyline_callback);
+        detail::path_to_polylines(commands_, [&polyline_visitor_factory,
+                                              &dasharray](Vector start_point) {
+            return DashifyingPolylineVisitor<PolylineVisitorFactory&>{
+                polyline_visitor_factory, start_point, dasharray};
+        });
     }
 }
 

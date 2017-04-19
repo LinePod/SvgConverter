@@ -91,9 +91,9 @@ PathToPolylineVisitor<PolylineVisitorFactory>::PathToPolylineVisitor(
     : visitor_factory_{polyline_visitor_factory},
       current_position_{start_position} {}
 
-template <class PolylineCallback>
-typename PathToPolylineVisitor<PolylineCallback>::SubpathState&
-PathToPolylineVisitor<PolylineCallback>::assert_in_subpath() {
+template <class PolylineVisitorFactory>
+typename PathToPolylineVisitor<PolylineVisitorFactory>::SubpathState&
+PathToPolylineVisitor<PolylineVisitorFactory>::assert_in_subpath() {
     if (!subpath_state_) {
         PolylineVisitor visitor = visitor_factory_(current_position_);
         // This weird construction is necessary to allow move only point
@@ -107,23 +107,23 @@ PathToPolylineVisitor<PolylineCallback>::assert_in_subpath() {
     return *subpath_state_;
 }
 
-template <class PolylineCallback>
-void PathToPolylineVisitor<PolylineCallback>::operator()(
+template <class PolylineVisitorFactory>
+void PathToPolylineVisitor<PolylineVisitorFactory>::operator()(
     const MoveCommand& command) {
     current_position_ = command.target;
     subpath_state_ = boost::none;
 }
 
-template <class PolylineCallback>
-void PathToPolylineVisitor<PolylineCallback>::operator()(
+template <class PolylineVisitorFactory>
+void PathToPolylineVisitor<PolylineVisitorFactory>::operator()(
     const LineCommand& command) {
     SubpathState& subpath_state = assert_in_subpath();
     subpath_state.visitor(command.target);
     current_position_ = command.target;
 }
 
-template <class PolylineCallback>
-void PathToPolylineVisitor<PolylineCallback>::operator()(
+template <class PolylineVisitorFactory>
+void PathToPolylineVisitor<PolylineVisitorFactory>::operator()(
     const BezierCommand& command) {
     SubpathState& subpath_state = assert_in_subpath();
     subdivide_curve(
@@ -133,8 +133,8 @@ void PathToPolylineVisitor<PolylineCallback>::operator()(
     current_position_ = command.target;
 }
 
-template <class PolylineCallback>
-void PathToPolylineVisitor<PolylineCallback>::operator()(
+template <class PolylineVisitorFactory>
+void PathToPolylineVisitor<PolylineVisitorFactory>::operator()(
     const CloseSubpathCommand&) {
     subpath_state_->visitor(subpath_state_->starting_point);
     current_position_ = subpath_state_->starting_point;
@@ -210,6 +210,11 @@ class Path {
     template <class PolylineVisitorFactory>
     void to_polylines(const std::vector<double>& dasharray,
                       PolylineVisitorFactory polyline_visitor_factory) const;
+
+    /**
+     * Resets the path to be empty.
+     */
+    void clear();
 };
 
 template <class PolylineVisitorFactory>

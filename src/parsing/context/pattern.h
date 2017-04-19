@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include <clipper.hpp>
+
 #include "../../math_defs.h"
 #include "../coordinate_system.h"
 #include "../path.h"
@@ -61,6 +63,13 @@ class PatternExporter {
 std::vector<Vector> compute_tiling_offsets(
     Vector pattern_size, const CoordinateSystem& coordinate_system,
     const Path& clipping_path);
+
+ClipperLib::PolyTree clip_tiled_pattern(
+    const Path& clipping_path,
+    const std::vector<detail::DashedPath>& pattern_paths,
+    const std::vector<Vector>& offsets);
+
+Vector from_clipper_point(ClipperLib::IntPoint point);
 
 }  // namespace detail
 
@@ -200,14 +209,27 @@ void PatternContext<Exporter>::on_exit_element() {
     Vector pattern_size = pattern_viewport.size();
     auto offsets = detail::compute_tiling_offsets(
         pattern_size, coordinate_system(), clipping_path_);
-    for (auto offset : offsets) {
-        for (auto path : pattern_paths_) {
-            // For now (without cropping) we just pass an offset version of the
-            // path along to the outer exporter.
-            Transform translate{Eigen::Translation2d{offset}};
-            path.path.transform(translate);
-            exporter_.plot(path.path, path.dasharray);
+    ClipperLib::PolyTree poly_tree =
+        detail::clip_tiled_pattern(clipping_path_, pattern_paths_, offsets);
+
+    ClipperLib::Paths paths;
+    ClipperLib::PolyTreeToPaths(poly_tree, paths);
+
+    Path svg_path;
+    for (const auto& path : paths) {
+        if (path.empty()) {
+            continue;
         }
+
+        svg_path.push_command(
+            MoveCommand{detail::from_clipper_point(path.front())});
+        for (std::size_t i = 1; i < path.size(); i++) {
+            svg_path.push_command(
+                LineCommand{detail::from_clipper_point(path[i])});
+        }
+
+        exporter_.plot(svg_path, {});
+        svg_path.clear();
     }
 }
 

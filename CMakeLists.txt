@@ -54,6 +54,14 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS OFF)
 
+find_program(CLANG_TIDY "clang-tidy")
+if (CLANG_TIDY)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+            CXX_CLANG_TIDY ${CLANG_TIDY})
+else()
+    message(WARNING "clang-tidy not found!")
+endif()
+
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     target_compile_options(${PROJECT_NAME}
             PUBLIC -Weverything

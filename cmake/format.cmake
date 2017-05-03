@@ -11,4 +11,6 @@ if (CLANG_FORMAT)
             -i
             -style=file
             ${CXX_ABSOLUTE_FORMAT_FILES})
+else()
+    message(WARNING "clang-format not found!")
 endif()

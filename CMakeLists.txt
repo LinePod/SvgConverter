@@ -1,8 +1,12 @@
 cmake_minimum_required(VERSION 3.5)
 
-add_subdirectory(external)
-
 project(svg_converter)
+
+include(cmake/dependencies/clipper.cmake)
+include(cmake/dependencies/svgpp.cmake)
+include(cmake/dependencies/boost.cmake)
+include(cmake/dependencies/eigen3.cmake)
+include(cmake/dependencies/libxml2.cmake)
 
 # Better to list these explicitly, see http://stackoverflow.com/q/1027247
 set(CXX_SOURCE_FILES
@@ -41,11 +45,6 @@ set(CXX_SOURCE_AND_HEADER_FILES
         src/parsing/viewport.h
         src/svg.h)
 
-find_package(Boost REQUIRED)
-find_package(Eigen3 REQUIRED)
-find_package(LibXml2 REQUIRED)
-
-
 add_executable(${PROJECT_NAME} ${CXX_SOURCE_FILES})
 set_target_properties(${PROJECT_NAME} PROPERTIES
         CXX_STANDARD 14
@@ -58,12 +57,4 @@ if (NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Debug")
     include(cmake/warnings.cmake)
 endif()
 
-# SYSTEM tells the compiler to treat the includes as system includes,
-# suppressing the warnings in svg++.
-target_include_directories(${PROJECT_NAME} SYSTEM
-        PUBLIC ${Boost_INCLUDE_DIRS}
-        PUBLIC ${Eigen3_INCLUDE_DIR}
-        PUBLIC ${LIBXML2_INCLUDE_DIR}
-        PUBLIC ${SVGPP_INCLUDE_DIR})
-
-target_link_libraries(${PROJECT_NAME} ${LIBXML2_LIBRARIES} Clipper)
+target_link_libraries(${PROJECT_NAME} Svgpp Clipper Boost::boost Eigen3 LibXml2)

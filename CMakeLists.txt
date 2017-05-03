@@ -41,8 +41,6 @@ set(CXX_SOURCE_AND_HEADER_FILES
         src/parsing/viewport.h
         src/svg.h)
 
-include(cmake/format.cmake)
-
 find_package(Boost REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(LibXml2 REQUIRED)
@@ -54,25 +52,10 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS OFF)
 
-find_program(CLANG_TIDY "clang-tidy")
-if (CLANG_TIDY)
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-            CXX_CLANG_TIDY ${CLANG_TIDY})
-else()
-    message(WARNING "clang-tidy not found!")
-endif()
-
-if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-    target_compile_options(${PROJECT_NAME}
-            PUBLIC -Weverything
-            PUBLIC -Wno-c++98-compat
-            PUBLIC -Wno-padded
-            PUBLIC -Wno-missing-prototypes)
-elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-    target_compile_options(${PROJECT_NAME}
-            PUBLIC -Wall
-            PUBLIC -Wpedantic
-            PUBLIC -Wextra)
+if (NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Debug")
+    include(cmake/format.cmake)
+    include(cmake/tidy.cmake)
+    include(cmake/warnings.cmake)
 endif()
 
 # SYSTEM tells the compiler to treat the includes as system includes,

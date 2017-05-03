@@ -61,7 +61,7 @@ class PatternExporter {
  *         0,0), that will be included in the list as well.
  */
 std::vector<Vector> compute_tiling_offsets(
-    Vector pattern_size, const CoordinateSystem& coordinate_system,
+    const Vector& pattern_size, const CoordinateSystem& coordinate_system,
     const Path& clipping_path);
 
 ClipperLib::PolyTree clip_tiled_pattern(

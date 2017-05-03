@@ -187,7 +187,7 @@ class Path {
     /**
      * Extends the path by adding a command at the end.
      */
-    void push_command(PathCommand command);
+    void push_command(const PathCommand& command);
 
     /**
      * Apply a transformation to all commands in a path.

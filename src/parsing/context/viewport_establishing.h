@@ -27,7 +27,7 @@ class ViewportEstablishingContext {
      *                       is disabled by default.
      */
     explicit ViewportEstablishingContext(
-        const boost::optional<Viewport> inner_viewport);
+        boost::optional<Viewport> inner_viewport);
 
     /**
      * Used by the `GraphicsElementContext(const ParentContext&)` constructor.

@@ -1,14 +1,15 @@
 #include "viewport_establishing.h"
 
 ViewportEstablishingContext::ViewportEstablishingContext(
-    const boost::optional<Viewport> inner_viewport)
-    : inner_viewport_{inner_viewport} {}
+    boost::optional<Viewport> inner_viewport)
+    : inner_viewport_{std::move(inner_viewport)} {}
 
 const Viewport& ViewportEstablishingContext::inner_viewport() const {
     return *inner_viewport_;
 }
 
-void ViewportEstablishingContext::set_viewport(double, double, double width,
+void ViewportEstablishingContext::set_viewport(double /*unused*/,
+                                               double /*unused*/, double width,
                                                double height) {
     // X and y, as well as all scaling and alignment is handled by SVG++ and
     // passed as a transform due to the viewport policy `as_transform`.

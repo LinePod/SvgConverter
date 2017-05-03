@@ -21,11 +21,13 @@ BezierCommand detail::transformed(BezierCommand command,
 }
 
 CloseSubpathCommand detail::transformed(CloseSubpathCommand command,
-                                        const Transform&) {
+                                        const Transform& /*unused*/) {
     return command;
 }
 
-void Path::push_command(PathCommand command) { commands_.push_back(command); }
+void Path::push_command(const PathCommand& command) {
+    commands_.push_back(command);
+}
 
 void Path::transform(const Transform& transform) {
     std::transform(

@@ -16,19 +16,21 @@ void build_id_to_node_map(xmlNodePtr node,
     // strategy.
 
     constexpr xmlChar kIdAttribute[] = "id";
-    if (const xmlChar* id_attr = xmlGetProp(node, kIdAttribute)) {
-        std::string id{reinterpret_cast<const char*>(id_attr)};
+    if (const xmlChar* id_attr =
+            xmlGetProp(node, static_cast<const xmlChar*>(kIdAttribute))) {
+        std::string id{reinterpret_cast<const char*>(id_attr)};  // NOLINT
         map.insert({id, node});
     }
 
-    for (xmlNodePtr child = node->children; child; child = child->next) {
+    for (xmlNodePtr child = node->children; child != nullptr;
+         child = child->next) {
         build_id_to_node_map(child, map);
     }
 }
 
 }  // namespace detail
 
-SvgLoadError::SvgLoadError(xmlErrorPtr errorPtr) {
+SvgLoadError::SvgLoadError(xmlErrorPtr errorPtr) : error_{} {
     xmlCopyError(errorPtr, &error_);
 }
 

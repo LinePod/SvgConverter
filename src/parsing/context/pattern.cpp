@@ -12,7 +12,7 @@
  */
 constexpr double kClipperAccuracyFactor = 10;
 
-ClipperLib::IntPoint to_clipper_point(Vector point) {
+ClipperLib::IntPoint to_clipper_point(const Vector& point) {
     auto int_point = (point * kClipperAccuracyFactor)
                          .array()
                          .round()
@@ -52,12 +52,13 @@ class DualLambdaPolylineVisitor {
     DualLambdaPolylineVisitor& operator=(const DualLambdaPolylineVisitor&) =
         delete;
 
-    DualLambdaPolylineVisitor(DualLambdaPolylineVisitor&& other)
+    DualLambdaPolylineVisitor(DualLambdaPolylineVisitor&& other) noexcept
         : point_func_{other.point_func_}, on_end_func_{other.on_end_func_} {
         other.is_alive = false;
     }
 
-    DualLambdaPolylineVisitor& operator=(DualLambdaPolylineVisitor&& other) {
+    DualLambdaPolylineVisitor& operator=(
+        DualLambdaPolylineVisitor&& other) noexcept {
         point_func_ = other.point_func_;
         on_end_func_ = other.on_end_func_;
         is_alive = true;
@@ -85,7 +86,7 @@ DualLambdaPolylineVisitor<PointFunc, OnEndFunc> make_dual_lambda_visitor(
 }
 
 std::vector<Vector> detail::compute_tiling_offsets(
-    Vector pattern_size, const CoordinateSystem& coordinate_system,
+    const Vector& pattern_size, const CoordinateSystem& coordinate_system,
     const Path& clipping_path) {
     // We use a very simple approach to tiling here: In the coordinate system
     // it is defined in, the pattern is a rectangle located at (0, 0). We add an
@@ -129,7 +130,7 @@ std::vector<Vector> detail::compute_tiling_offsets(
 
     for (std::int64_t x = int_min_point(0); x <= int_max_point(0); x++) {
         for (std::int64_t y = int_min_point(1); y <= int_max_point(1); y++) {
-            result.push_back(to_root * Vector{x, y} - base_point);
+            result.emplace_back(to_root * Vector{x, y} - base_point);
         }
     }
 
@@ -145,32 +146,30 @@ ClipperLib::PolyTree detail::clip_tiled_pattern(
     ClipperLib::Path clipper_path;
     ClipperLib::Clipper clipper;
 
-    clipping_path.to_polylines(
-        {}, [&](Vector start_point) {
-            clipper_path.push_back(to_clipper_point(start_point));
-            return make_dual_lambda_visitor(
-                [&](Vector point) {
-                    clipper_path.push_back(to_clipper_point(point));
-                },
-                [&]() {
-                    clipper.AddPath(clipper_path, ClipperLib::PolyType::ptClip,
-                                    true);
-                    clipper_path.clear();
-                });
-        });
+    clipping_path.to_polylines({}, [&](Vector start_point) {
+        clipper_path.push_back(to_clipper_point(start_point));
+        return make_dual_lambda_visitor(
+            [&](Vector point) {
+                clipper_path.push_back(to_clipper_point(point));
+            },
+            [&]() {
+                clipper.AddPath(clipper_path, ClipperLib::PolyType::ptClip,
+                                true);
+                clipper_path.clear();
+            });
+    });
 
     // Reused like `clipper_path`
     std::vector<Vector> polyline;
     for (const auto& dashed_path : pattern_paths) {
         dashed_path.path.to_polylines(
-            dashed_path.dasharray,
-            [&](Vector start_point) {
+            dashed_path.dasharray, [&](Vector start_point) {
                 polyline.push_back(start_point);
                 return make_dual_lambda_visitor(
                     [&](Vector point) { polyline.push_back(point); },
                     [&]() {
-                        for (Vector offset : offsets) {
-                            for (Vector point : polyline) {
+                        for (const Vector& offset : offsets) {
+                            for (const Vector& point : polyline) {
                                 clipper_path.push_back(
                                     to_clipper_point(point + offset));
                             }
@@ -199,5 +198,5 @@ detail::PatternExporter::PatternExporter(std::vector<DashedPath>& paths)
     : paths_{paths} {}
 
 void detail::PatternExporter::plot(Path path, std::vector<double> dasharray) {
-    paths_.push_back({path, dasharray});
+    paths_.push_back({std::move(path), std::move(dasharray)});
 }

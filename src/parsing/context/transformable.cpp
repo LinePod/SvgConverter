@@ -1,7 +1,7 @@
 #include "transformable.h"
 
 TransformableContext::TransformableContext(CoordinateSystem coordinate_system)
-    : coordinate_system_{coordinate_system} {}
+    : coordinate_system_{std::move(coordinate_system)} {}
 
 const CoordinateSystem& TransformableContext::coordinate_system() const {
     return coordinate_system_;

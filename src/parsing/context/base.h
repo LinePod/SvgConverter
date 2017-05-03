@@ -20,9 +20,6 @@ class BaseContext {
 
     explicit BaseContext(const SvgDocument& document) : document_{document} {}
 
-    explicit BaseContext(const BaseContext& parent)
-        : document_{parent.document_} {}
-
  public:
     /**
      * SVG++ event called when leaving an element.

@@ -1,19 +1,13 @@
 #ifndef SVG_CONVERTER_PARSING_TRAVERSAL_H_
 #define SVG_CONVERTER_PARSING_TRAVERSAL_H_
 
-#include <svgpp/policy/xml/libxml2.hpp>
-
 #include <boost/mpl/map.hpp>
-#include <svgpp/document_traversal.hpp>
-#include <svgpp/policy/path.hpp>
-#include <svgpp/policy/viewport.hpp>
-#include <svgpp/traits/attribute_groups.hpp>
-#include <svgpp/traits/element_groups.hpp>
 
 #include "../mpl_util.h"
 #include "context/factories.h"
 #include "context/fwd.h"
 #include "context/viewport_establishing.h"
+#include "svgpp.h"
 #include "viewport.h"
 
 namespace detail {

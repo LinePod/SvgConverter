@@ -1,9 +1,8 @@
 #ifndef SVG_CONVERTER_PARSING_VIEWPORT_H_
 #define SVG_CONVERTER_PARSING_VIEWPORT_H_
 
-#include <svgpp/factory/unitless_length.hpp>
-
 #include "../math_defs.h"
+#include "svgpp.h"
 
 /**
  * Describes the mapping between user units and absolute units like millimeters.

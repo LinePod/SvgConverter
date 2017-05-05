@@ -18,6 +18,7 @@ set(CXX_SOURCE_FILES
         src/parsing/coordinate_system.cpp
         src/parsing/gpgl_exporter.cpp
         src/parsing/path.cpp
+        src/parsing/svgpp_external_parsers.cpp
         src/parsing/viewport.cpp
         src/svg.cpp)
 
@@ -41,6 +42,7 @@ set(CXX_SOURCE_AND_HEADER_FILES
         src/parsing/dashes.h
         src/parsing/gpgl_exporter.h
         src/parsing/path.h
+        src/parsing/svgpp.h
         src/parsing/traversal.h
         src/parsing/viewport.h
         src/svg.h)

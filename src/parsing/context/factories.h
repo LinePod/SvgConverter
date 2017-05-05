@@ -5,9 +5,8 @@
 #include <utility>
 
 #include <boost/mpl/has_key.hpp>
-#include <svgpp/factory/context.hpp>
-#include <svgpp/traits/element_groups.hpp>
 
+#include "../svgpp.h"
 #include "fwd.h"
 
 namespace detail {

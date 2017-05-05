@@ -7,10 +7,10 @@
 #include <vector>
 
 #include <boost/mpl/set.hpp>
-#include <svgpp/definitions.hpp>
 
 #include "../../math_defs.h"
 #include "../path.h"
+#include "../svgpp.h"
 #include "../traversal.h"
 #include "graphics_element.h"
 #include "pattern.h"

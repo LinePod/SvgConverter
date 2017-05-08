@@ -5,7 +5,6 @@
 #include "traversal.h"
 
 
-
 SVGPP_PARSE_PATH_DATA_IMPL(const char *, double)
 SVGPP_PARSE_TRANSFORM_IMPL(const char *, double)
 SVGPP_PARSE_PAINT_IMPL    (const char *, svgpp::factory::color::default_factory, svgpp::factory::icc_color::default_factory)

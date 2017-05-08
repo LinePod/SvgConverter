@@ -1,5 +1,5 @@
-#ifndef SVG_CONVERTER_SVGPP_H
-#define SVG_CONVERTER_SVGPP_H
+#ifndef SVG_CONVERTER_PARSING_SVGPP_H
+#define SVG_CONVERTER_PARSING_SVGPP_H
 
 // This file should be the only place that svgpp headers are included from,
 // to assure that the following defines are set before any headers are included.
@@ -18,4 +18,4 @@
 #include <svgpp/policy/xml/libxml2.hpp>
 #include <svgpp/svgpp.hpp>
 
-#endif //SVG_CONVERTER_SVGPP_H
+#endif //SVG_CONVERTER_PARSING_SVGPP_H

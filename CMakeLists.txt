@@ -7,10 +7,12 @@ include(cmake/dependencies/svgpp.cmake)
 include(cmake/dependencies/boost.cmake)
 include(cmake/dependencies/eigen3.cmake)
 include(cmake/dependencies/libxml2.cmake)
+include(cmake/dependencies/spdlog.cmake)
 
 # Better to list these explicitly, see http://stackoverflow.com/q/1027247
 set(CXX_SOURCE_FILES
         src/conversion.cpp
+        src/logging.cpp
         src/main.cpp
         src/parsing/context/pattern.cpp
         src/parsing/context/transformable.cpp
@@ -26,6 +28,7 @@ set(CXX_SOURCE_AND_HEADER_FILES
         ${CXX_SOURCE_FILES}
         src/bezier.h
         src/conversion.h
+        src/logging.h
         src/math_defs.h
         src/mpl_util.h
         src/parsing/context/base.h
@@ -59,4 +62,10 @@ if (CMAKE_BUILD_TYPE STREQUAL "" OR CMAKE_BUILD_TYPE STREQUAL "Debug")
     include(cmake/warnings.cmake)
 endif()
 
-target_link_libraries(${PROJECT_NAME} Svgpp Clipper Boost::boost Eigen3 LibXml2)
+target_link_libraries(${PROJECT_NAME}
+        Svgpp
+        Clipper
+        Boost::boost
+        Eigen3
+        LibXml2
+        spdlog::spdlog)

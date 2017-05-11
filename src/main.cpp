@@ -2,13 +2,14 @@
 #include <iostream>
 
 #include "conversion.h"
+#include "logging.h"
 #include "svg.h"
 
-SvgDocument load_svg(const std::string& filename) {
+SvgDocument load_svg(spdlog::logger& logger, const std::string& filename) {
     try {
         return SvgDocument{filename};
     } catch (const SvgLoadError& err) {
-        std::cerr << "Failed to load svg: " << err.what() << '\n';
+        logger.critical("Failed to load svg: {}", err.what());
         std::exit(1);
     }
 }
@@ -21,7 +22,8 @@ int main(int argc, char* argv[]) {
 
     LIBXML_TEST_VERSION
 
-    auto doc = load_svg(argv[1]);
+    spdlog::logger& logger = setup_global_logger();
+    auto doc = load_svg(logger, argv[1]);
     std::cout << convert(doc);
 
     return 0;

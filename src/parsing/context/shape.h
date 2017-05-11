@@ -15,6 +15,30 @@
 #include "graphics_element.h"
 #include "pattern.h"
 
+namespace detail {
+
+/**
+ * Warn about a type of paint server being unsupported for an attribute.
+ */
+template <class AttributeTag, class... Args>
+void warn_unsupported_paint_server(spdlog::logger& logger, AttributeTag,
+                                   Args...) {
+    logger.warn("Unsupported value type for attribute {}",
+                svgpp::attribute_name<char>::get<AttributeTag>());
+}
+
+// Overload to only debug log warnings about simple colors, because they are
+// sometimes necessary (to make an element clickable, or to make it viewable
+// for debugging).
+template <class AttributeTag>
+void warn_unsupported_paint_server(spdlog::logger& logger, AttributeTag, int,
+                                   svgpp::tag::skip_icc_color = {}) {
+    logger.debug("Ignoring color value for attribute {}",
+                 svgpp::attribute_name<char>::get<AttributeTag>());
+}
+
+}  // namespace detail
+
 /**
  * Context for shape elements, like <path> or <rect>.
  *
@@ -122,8 +146,8 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
     }
 
     template <class... Args>
-    void set(svgpp::tag::attribute::fill, Args...) {
-        throw std::runtime_error{"Unsupported fill type"};
+    void set(svgpp::tag::attribute::fill tag, Args... args) {
+        detail::warn_unsupported_paint_server(this->logger_, tag, args...);
     }
 
     void set(svgpp::tag::attribute::fill, svgpp::tag::value::none) {

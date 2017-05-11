@@ -18,9 +18,10 @@ class SvgContext : public GraphicsElementContext<Exporter>,
      *
      * @param global_viewport Global viewport representing the available space.
      */
-    explicit SvgContext(const SvgDocument& document, Exporter exporter,
-                        const Viewport& global_viewport)
+    explicit SvgContext(const SvgDocument& document, spdlog::logger& logger,
+                        Exporter exporter, const Viewport& global_viewport)
         : GraphicsElementContext<Exporter>{document,
+                                           logger,
                                            exporter,
                                            global_viewport,
                                            {}},

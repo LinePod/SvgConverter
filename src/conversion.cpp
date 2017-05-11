@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+#include "logging.h"
+#include "parsing/path.h"
 #include "parsing/context/g.h"
 #include "parsing/context/pattern.h"
 #include "parsing/context/shape.h"
@@ -14,10 +16,17 @@ std::string convert(const SvgDocument& svgDoc) {
     constexpr double print_area_height = 280;
 
     std::ostringstream code_stream;
+    spdlog::logger& logger = get_global_logger();
     GpglExporter exporter{code_stream};
     const Viewport global_viewport{print_area_width, print_area_height};
-    SvgContext<GpglExporter> context{svgDoc, exporter, global_viewport};
+    SvgContext<GpglExporter> context{svgDoc, logger, exporter, global_viewport};
     xmlNodePtr root = svgDoc.root();
-    DocumentTraversal::load_document(root, context);
+
+    try {
+        DocumentTraversal::load_document(root, context);
+    } catch (const InvalidPathError& err) {
+        logger.critical("Invalid SVG: {}", err.what());
+    }
+
     return code_stream.str();
 }

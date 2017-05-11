@@ -1,6 +1,8 @@
 #ifndef SVG_CONVERTER_PARSING_CONTEXT_BASE_H_
 #define SVG_CONVERTER_PARSING_CONTEXT_BASE_H_
 
+#include <spdlog/spdlog.h>
+
 #include "../../svg.h"
 
 /**
@@ -18,7 +20,13 @@ class BaseContext {
      */
     const SvgDocument& document_;
 
-    explicit BaseContext(const SvgDocument& document) : document_{document} {}
+    /**
+     * Logger for all conversion related messages.
+     */
+    spdlog::logger& logger_;
+
+    explicit BaseContext(const SvgDocument& document, spdlog::logger& logger)
+        : document_{document}, logger_{logger} {}
 
  public:
     /**

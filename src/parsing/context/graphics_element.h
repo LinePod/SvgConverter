@@ -40,10 +40,10 @@ class GraphicsElementContext : public BaseContext, public TransformableContext {
      */
     const Viewport& viewport_;
 
-    GraphicsElementContext(const SvgDocument& document, Exporter exporter,
-                           const Viewport& viewport,
+    GraphicsElementContext(const SvgDocument& document, spdlog::logger& logger,
+                           Exporter exporter, const Viewport& viewport,
                            const CoordinateSystem& coordinate_system)
-        : BaseContext(document),
+        : BaseContext(document, logger),
           TransformableContext{coordinate_system},
           exporter_{exporter},
           viewport_{viewport} {}

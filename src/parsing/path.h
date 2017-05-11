@@ -1,6 +1,7 @@
 #ifndef SVG_CONVERTER_PARSING_PATH_H
 #define SVG_CONVERTER_PARSING_PATH_H
 
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -22,6 +23,10 @@ namespace detail {
 constexpr double kBezierErrorThreshold = 5;
 
 }  // namespace detail
+
+struct InvalidPathError : std::exception {
+    virtual const char* what() const noexcept override;
+};
 
 struct MoveCommand {
     Vector target;
@@ -161,8 +166,7 @@ void path_to_polylines(const std::vector<PathCommand>& commands,
 
     auto* move_cmd_ptr = boost::get<MoveCommand>(&commands.front());
     if (move_cmd_ptr == nullptr) {
-        // TODO(David): Error handling strategy
-        throw std::runtime_error{"Invalid path: No leading move command"};
+        throw InvalidPathError{};
     }
 
     PathToPolylineVisitor<PolylineVisitorFactory> command_visitor{

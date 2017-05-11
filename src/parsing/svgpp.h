@@ -18,4 +18,4 @@
 #include <svgpp/policy/xml/libxml2.hpp>
 #include <svgpp/svgpp.hpp>
 
-#endif //SVG_CONVERTER_PARSING_SVGPP_H
+#endif  // SVG_CONVERTER_PARSING_SVGPP_H

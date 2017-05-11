@@ -2,6 +2,10 @@
 
 #include <algorithm>
 
+const char* InvalidPathError::what() const noexcept {
+    return "Path does not start with a move command";
+}
+
 MoveCommand detail::transformed(MoveCommand command,
                                 const Transform& transform) {
     return {transform * command.target};

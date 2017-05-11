@@ -9,6 +9,9 @@ include(cmake/dependencies/eigen3.cmake)
 include(cmake/dependencies/libxml2.cmake)
 include(cmake/dependencies/spdlog.cmake)
 
+# Spdlog needs to be linked against pthreads on linux
+find_package(Threads REQUIRED)
+
 # Better to list these explicitly, see http://stackoverflow.com/q/1027247
 set(CXX_SOURCE_FILES
         src/conversion.cpp
@@ -68,4 +71,5 @@ target_link_libraries(${PROJECT_NAME}
         Boost::boost
         Eigen3
         LibXml2
-        spdlog::spdlog)
+        spdlog::spdlog
+        ${CMAKE_THREAD_LIBS_INIT})

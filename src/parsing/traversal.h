@@ -62,6 +62,9 @@ using ProcessedAttributes = Concat<
     // Enable `fill` only for shape elements
     PairAll<svgpp::traits::shape_elements, attrib::fill>,
 
+    // Enable `stroke` only for shape elements
+    PairAll<svgpp::traits::shape_elements, attrib::stroke>,
+
     // Enable transform attributes for all elements
     mpl::set<attrib::transform, attrib::patternTransform>>;
 

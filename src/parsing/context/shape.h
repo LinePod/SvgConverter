@@ -67,6 +67,11 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
      */
     std::string fill_fragment_iri_;
 
+    /**
+     * Whether the stroke should be plotted.
+     */
+    bool stroke_ = true;
+
  public:
     template <class ParentContext>
     explicit ShapeContext(ParentContext& parent)
@@ -125,9 +130,11 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
                 load(referenced_node, context);
         }
 
-        // We move the path and dasharray, so that an exporter can store them
-        // for later use without copying.
-        this->exporter_.plot(std::move(path_), std::move(dasharray_));
+        if (stroke_) {
+            // We move the path and dasharray, so that an exporter can store
+            // them for later use without copying.
+            this->exporter_.plot(std::move(path_), std::move(dasharray_));
+        }
     }
 
     /**
@@ -143,6 +150,15 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
     template <class Range>
     void set(svgpp::tag::attribute::stroke_dasharray, const Range& range) {
         dasharray_.assign(boost::begin(range), boost::end(range));
+    }
+
+    template <class... Args>
+    void set(svgpp::tag::attribute::stroke tag, Args... args) {
+        detail::warn_unsupported_paint_server(this->logger_, tag, args...);
+    }
+
+    void set(svgpp::tag::attribute::stroke, svgpp::tag::value::none) {
+        stroke_ = false;
     }
 
     template <class... Args>

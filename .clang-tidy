@@ -1,3 +1,4 @@
 ---
 Checks: '*,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-google-runtime-references'
+HeaderFilterRegex: '.*'
 ...

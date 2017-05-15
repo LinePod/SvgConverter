@@ -3,12 +3,12 @@
 #include <sstream>
 
 #include "logging.h"
-#include "parsing/path.h"
 #include "parsing/context/g.h"
 #include "parsing/context/pattern.h"
 #include "parsing/context/shape.h"
 #include "parsing/context/svg.h"
 #include "parsing/gpgl_exporter.h"
+#include "parsing/path.h"
 #include "parsing/traversal.h"
 
 std::string convert(const SvgDocument& svgDoc) {

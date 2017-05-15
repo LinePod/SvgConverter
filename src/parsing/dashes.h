@@ -92,7 +92,7 @@ DashifyingPolylineVisitor<PolylineVisitorFactory>::DashifyingPolylineVisitor(
     : wrapped_visitor_factory_{polyline_visitor_factory},
       current_dash_iter_{detail::make_cyclic_iter(dasharray)},
       current_dash_remaining_{*current_dash_iter_},
-      current_point_{start_point} {}
+      current_point_{std::move(start_point)} {}
 
 template <class PolylineVisitorFactory>
 void DashifyingPolylineVisitor<PolylineVisitorFactory>::report_dash(

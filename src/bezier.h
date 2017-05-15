@@ -20,8 +20,9 @@
  * generated polyline (from start to back, excluding the start point).
  */
 template <class Callback>
-void subdivide_curve(double error_threshold, Vector start, Vector ctrl1,
-                     Vector ctrl2, Vector end, Callback callback) {
+void subdivide_curve(double error_threshold, const Vector& start,
+                     const Vector& ctrl1, const Vector& ctrl2,
+                     const Vector& end, Callback callback) {
     using Line = Eigen::ParametrizedLine<double, 2>;
 
     Line straight_line{start, end - start};

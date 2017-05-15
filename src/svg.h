@@ -17,6 +17,8 @@ namespace detail {
  */
 struct Libxml2Deleter {
     void operator()(xmlDocPtr doc) const;
+
+    void operator()(xmlErrorPtr error) const;
 };
 
 }  // namespace detail
@@ -47,18 +49,10 @@ class SvgDocument {
 
 class SvgLoadError : public std::exception {
  private:
-    xmlError error_;
+    std::unique_ptr<xmlError> error_;
 
  public:
     explicit SvgLoadError(xmlErrorPtr errorPtr);
-    ~SvgLoadError() override;
-
-    // xmlError contains allocated memory (message, etc.), therefore
-    // this exception should not be copyable.
-    SvgLoadError(const SvgLoadError&) = delete;
-    SvgLoadError(SvgLoadError&&) = default;
-    SvgLoadError& operator=(const SvgLoadError&) = delete;
-    SvgLoadError& operator=(SvgLoadError&&) = default;
 
     const char* what() const noexcept override;
 };

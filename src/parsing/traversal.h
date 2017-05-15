@@ -23,7 +23,9 @@ namespace attrib = svgpp::tag::attribute;
  * rendering is disabled (viewport width and/or height of zero).
  */
 struct DocumentTraversalControlPolicy {
-    static bool proceed_to_element_content(const BaseContext&) { return true; }
+    static bool proceed_to_element_content(const BaseContext& /*unused*/) {
+        return true;
+    }
 
     static bool proceed_to_element_content(
         const ViewportEstablishingContext& context) {
@@ -31,7 +33,7 @@ struct DocumentTraversalControlPolicy {
     }
 
     template <class Context>
-    static bool proceed_to_next_child(const Context&) {
+    static bool proceed_to_next_child(const Context& /*unused*/) {
         return true;
     }
 };

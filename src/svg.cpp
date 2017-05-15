@@ -4,6 +4,10 @@ namespace detail {
 
 void Libxml2Deleter::operator()(xmlDocPtr doc) const { xmlFreeDoc(doc); }
 
+void Libxml2Deleter::operator()(xmlErrorPtr error) const {
+    xmlResetError(error);
+}
+
 void build_id_to_node_map(xmlNodePtr node,
                           std::unordered_map<std::string, xmlNodePtr>& map) {
     // A note on string handling:
@@ -30,8 +34,9 @@ void build_id_to_node_map(xmlNodePtr node,
 
 }  // namespace detail
 
-SvgLoadError::SvgLoadError(xmlErrorPtr errorPtr) : error_{} {
-    xmlCopyError(errorPtr, &error_);
+SvgLoadError::SvgLoadError(xmlErrorPtr errorPtr)
+    : error_{std::make_unique<xmlError>()} {
+    xmlCopyError(errorPtr, error_.get());
 }
 
 SvgDocument::SvgDocument(const std::string& filename)
@@ -52,6 +57,4 @@ xmlNodePtr SvgDocument::find_by_id(const std::string& id) const {
     return iter == nodes_by_id_.end() ? nullptr : iter->second;
 }
 
-SvgLoadError::~SvgLoadError() { xmlResetError(&error_); }
-
-const char* SvgLoadError::what() const noexcept { return error_.message; }
+const char* SvgLoadError::what() const noexcept { return error_->message; }

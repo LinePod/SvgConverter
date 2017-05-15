@@ -21,8 +21,9 @@ namespace detail {
  * Warn about a type of paint server being unsupported for an attribute.
  */
 template <class AttributeTag, class... Args>
-void warn_unsupported_paint_server(spdlog::logger& logger, AttributeTag,
-                                   Args...) {
+void warn_unsupported_paint_server(spdlog::logger& logger,
+                                   AttributeTag /*unused*/,
+                                   Args... /*unused*/) {
     logger.warn("Unsupported value type for attribute {}",
                 svgpp::attribute_name<char>::get<AttributeTag>());
 }
@@ -31,8 +32,10 @@ void warn_unsupported_paint_server(spdlog::logger& logger, AttributeTag,
 // sometimes necessary (to make an element clickable, or to make it viewable
 // for debugging).
 template <class AttributeTag>
-void warn_unsupported_paint_server(spdlog::logger& logger, AttributeTag, int,
-                                   svgpp::tag::skip_icc_color = {}) {
+void warn_unsupported_paint_server(spdlog::logger& logger,
+                                   AttributeTag /*unused*/,
+                                   int /*unused color*/,
+                                   svgpp::tag::skip_icc_color /*unused*/ = {}) {
     logger.debug("Ignoring color value for attribute {}",
                  svgpp::attribute_name<char>::get<AttributeTag>());
 }
@@ -80,14 +83,16 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
     /**
      * SVG++ event for a non drawn movement in a shape path.
      */
-    void path_move_to(double x, double y, svgpp::tag::coordinate::absolute) {
+    void path_move_to(double x, double y,
+                      svgpp::tag::coordinate::absolute /*unused*/) {
         path_.push_command(MoveCommand{{x, y}});
     }
 
     /**
      * SVG++ event for a straight line in a shape path.
      */
-    void path_line_to(double x, double y, svgpp::tag::coordinate::absolute) {
+    void path_line_to(double x, double y,
+                      svgpp::tag::coordinate::absolute /*unused*/) {
         path_.push_command(LineCommand{{x, y}});
     }
 
@@ -96,7 +101,7 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
      */
     void path_cubic_bezier_to(double x1, double y1, double x2, double y2,
                               double x, double y,
-                              svgpp::tag::coordinate::absolute) {
+                              svgpp::tag::coordinate::absolute /*unused*/) {
         path_.push_command(BezierCommand{{x, y}, {x1, y1}, {x2, y2}});
     }
 
@@ -140,7 +145,8 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
     /**
      * SVG++ event when `stroke-dasharray` is set to an emtpy value.
      */
-    void set(svgpp::tag::attribute::stroke_dasharray, svgpp::tag::value::none) {
+    void set(svgpp::tag::attribute::stroke_dasharray /*unused*/,
+             svgpp::tag::value::none /*unused*/) {
         dasharray_.clear();
     }
 
@@ -148,7 +154,8 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
      * SVG++ event when `stroke-dasharray` is set to a non empty value.
      */
     template <class Range>
-    void set(svgpp::tag::attribute::stroke_dasharray, const Range& range) {
+    void set(svgpp::tag::attribute::stroke_dasharray /*unused*/,
+             const Range& range) {
         dasharray_.assign(boost::begin(range), boost::end(range));
     }
 
@@ -157,7 +164,8 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
         detail::warn_unsupported_paint_server(this->logger_, tag, args...);
     }
 
-    void set(svgpp::tag::attribute::stroke, svgpp::tag::value::none) {
+    void set(svgpp::tag::attribute::stroke /*unused*/,
+             svgpp::tag::value::none /*unused*/) {
         stroke_ = false;
     }
 
@@ -166,13 +174,14 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
         detail::warn_unsupported_paint_server(this->logger_, tag, args...);
     }
 
-    void set(svgpp::tag::attribute::fill, svgpp::tag::value::none) {
+    void set(svgpp::tag::attribute::fill /*unused*/,
+             svgpp::tag::value::none /*unused*/) {
         fill_fragment_iri_.clear();
     }
 
     template <class String>
-    void set(svgpp::tag::attribute::fill, svgpp::tag::iri_fragment,
-             const String& id) {
+    void set(svgpp::tag::attribute::fill /*unused*/,
+             svgpp::tag::iri_fragment /*unused*/, const String& id) {
         fill_fragment_iri_.assign(boost::begin(id), boost::end(id));
     }
 };

@@ -20,11 +20,11 @@ void GpglExporter::plot(const Path& path,
                         const std::vector<double>& dasharray) {
     path.to_polylines(dasharray, [this](Vector start_point) {
         start_point = to_gpgl(start_point);
-        out_stream_ << "M " << start_point(0) << ',' << start_point(1)
-                    << '\x03';
+        out_stream_.get() << "M " << start_point(0) << ',' << start_point(1)
+                          << '\x03';
         return [this](Vector point) {
             point = to_gpgl(point);
-            out_stream_ << "D " << point(0) << ',' << point(1) << '\x03';
+            out_stream_.get() << "D " << point(0) << ',' << point(1) << '\x03';
         };
     });
 }

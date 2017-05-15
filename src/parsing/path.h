@@ -25,7 +25,7 @@ constexpr double kBezierErrorThreshold = 5;
 }  // namespace detail
 
 struct InvalidPathError : std::exception {
-    virtual const char* what() const noexcept override;
+    const char* what() const noexcept override;
 };
 
 struct MoveCommand {
@@ -94,7 +94,7 @@ template <class PolylineVisitorFactory>
 PathToPolylineVisitor<PolylineVisitorFactory>::PathToPolylineVisitor(
     Vector start_position, PolylineVisitorFactory polyline_visitor_factory)
     : visitor_factory_{polyline_visitor_factory},
-      current_position_{start_position} {}
+      current_position_{std::move(start_position)} {}
 
 template <class PolylineVisitorFactory>
 typename PathToPolylineVisitor<PolylineVisitorFactory>::SubpathState&
@@ -140,7 +140,7 @@ void PathToPolylineVisitor<PolylineVisitorFactory>::operator()(
 
 template <class PolylineVisitorFactory>
 void PathToPolylineVisitor<PolylineVisitorFactory>::operator()(
-    const CloseSubpathCommand&) {
+    const CloseSubpathCommand& /*unused*/) {
     subpath_state_->visitor(subpath_state_->starting_point);
     current_position_ = subpath_state_->starting_point;
     subpath_state_ = boost::none;
@@ -152,7 +152,8 @@ LineCommand transformed(LineCommand command, const Transform& transform);
 
 BezierCommand transformed(BezierCommand command, const Transform& transform);
 
-CloseSubpathCommand transformed(CloseSubpathCommand command, const Transform&);
+CloseSubpathCommand transformed(CloseSubpathCommand command,
+                                const Transform& /*unused*/);
 
 /**
  * Implementation of path to polyline conversion without dashes.

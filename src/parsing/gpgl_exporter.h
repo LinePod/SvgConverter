@@ -1,6 +1,7 @@
 #ifndef SVG_CONVERTER_PARSING_GPGL_EXPORTER_H_
 #define SVG_CONVERTER_PARSING_GPGL_EXPORTER_H_
 
+#include <functional>
 #include <sstream>
 
 #include "../math_defs.h"
@@ -8,7 +9,8 @@
 
 class GpglExporter {
  private:
-    std::ostringstream& out_stream_;
+    // Reference wrapper to make the reference copyable.
+    std::reference_wrapper<std::ostringstream> out_stream_;
 
  public:
     /**
@@ -18,10 +20,6 @@ class GpglExporter {
      * copies.
      */
     explicit GpglExporter(std::ostringstream& out_stream);
-
-    GpglExporter(const GpglExporter&) = default;
-
-    GpglExporter& operator=(const GpglExporter&) = default;
 
     /**
      * Export the given path using the given dasharray.

@@ -1,4 +1,4 @@
 ---
-Checks: '*,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-google-runtime-references'
+Checks: '*,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-google-runtime-references,-llvm-header-guard'
 HeaderFilterRegex: '.*'
 ...

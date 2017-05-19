@@ -85,9 +85,9 @@ DualLambdaPolylineVisitor<PointFunc, OnEndFunc> make_dual_lambda_visitor(
             std::forward<OnEndFunc>(on_end_func)};
 }
 
-std::vector<Vector> detail::compute_tiling_offsets(
-    const Vector& pattern_size, const CoordinateSystem& coordinate_system,
-    const Path& clipping_path) {
+std::vector<Vector> detail::compute_tiling_offsets(const Vector& pattern_size,
+                                                   const Transform& to_root,
+                                                   const Path& clipping_path) {
     // We use a very simple approach to tiling here: In the coordinate system
     // it is defined in, the pattern is a rectangle located at (0, 0). We add an
     // additional scale, so that the size of the pattern is (1, 1). Then we take
@@ -102,22 +102,24 @@ std::vector<Vector> detail::compute_tiling_offsets(
     // only transform the rectangle into a parallelogram, and than doing
     // parallelogram tiling in root space.
 
-    Transform to_root = coordinate_system.transform();
-    to_root.scale(pattern_size);
-    Transform from_root =
-        to_root.inverse(Eigen::TransformTraits::AffineCompact);
+    // Transforms from the unit coordinate system (were one instance of the
+    // pattern is (1, 1) in size) to and from the root coordinate system.
+    Transform unit_to_root = to_root;
+    unit_to_root.scale(pattern_size);
+    Transform unit_from_root =
+        unit_to_root.inverse(Eigen::TransformTraits::AffineCompact);
 
     Rect bounding_box;
     clipping_path.to_polylines(
-        {}, [&bounding_box, &from_root](Vector start_point) {
-            bounding_box.extend(from_root * start_point);
-            return [&bounding_box, &from_root](Vector point) {
-                bounding_box.extend(from_root * point);
+        {}, [&bounding_box, &unit_from_root](Vector start_point) {
+            bounding_box.extend(unit_from_root * start_point);
+            return [&bounding_box, &unit_from_root](Vector point) {
+                bounding_box.extend(unit_from_root * point);
             };
         });
 
     std::vector<Vector> result;
-    Vector base_point = to_root * Vector{0, 0};
+    Vector base_point = unit_to_root * Vector{0, 0};
 
     // int64_t can hold all reasonable values that the double coefficients can
     // have
@@ -130,7 +132,7 @@ std::vector<Vector> detail::compute_tiling_offsets(
 
     for (std::int64_t x = int_min_point(0); x <= int_max_point(0); x++) {
         for (std::int64_t y = int_min_point(1); y <= int_max_point(1); y++) {
-            result.emplace_back(to_root * Vector{x, y} - base_point);
+            result.emplace_back(unit_to_root * Vector{x, y} - base_point);
         }
     }
 

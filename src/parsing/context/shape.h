@@ -121,14 +121,14 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
         // element. Allows us to process <pattern> only when referenced.
         using ProcessedElements = ExpectedElements;
 
-        path_.transform(this->coordinate_system().transform());
+        path_.transform(this->to_root());
 
         if (!fill_fragment_iri_.empty()) {
             auto referenced_node =
                 this->document_.find_by_id(fill_fragment_iri_);
-            PatternPseudoContext<Exporter> context{
-                *this, this->exporter_, this->viewport_,
-                this->coordinate_system(), path_};
+            PatternPseudoContext<Exporter> context{*this, this->exporter_,
+                                                   this->viewport_,
+                                                   this->to_root(), path_};
             DocumentTraversal::load_referenced_element<
                 svgpp::expected_elements<ExpectedElements>,
                 svgpp::processed_elements<ProcessedElements>>::

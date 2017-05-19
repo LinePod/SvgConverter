@@ -38,7 +38,8 @@ class ViewportEstablishingContext {
     /**
      * SVG++ event reporting x, y, width and height properties.
      */
-    void set_viewport(double /*unused*/, double /*unused*/, double width, double height);
+    void set_viewport(double /*unused*/, double /*unused*/, double width,
+                      double height);
 
     /**
      * SVG++ event reporting the viewbox size set by the `viewbox` attribute.

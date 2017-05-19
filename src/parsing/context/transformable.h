@@ -3,7 +3,7 @@
 
 #include <boost/array.hpp>
 
-#include "../coordinate_system.h"
+#include "../../math_defs.h"
 
 /**
  * Context base class for elements which support the `transform` attribute.
@@ -15,25 +15,24 @@
 class TransformableContext {
  private:
     /**
-     * Coordinate system for this element.
+     * Transformation from the local coordinate system to the root one.
      *
-     * This includes transforms from the element itself.
+     * The root coordinate system is one where each unit is a millimeter
+     * and the (0, 0) point is on the top left of the paper.
      */
-    CoordinateSystem coordinate_system_;
+    Transform to_root_;
 
  protected:
-    explicit TransformableContext(CoordinateSystem coordinate_system);
-
-    /**
-     * Provides the derived classes read-only access to the coordinate system.
-     */
-    const CoordinateSystem& coordinate_system() const;
+    explicit TransformableContext(const Transform& to_root);
 
  public:
     /**
+     * Provides read only access to the transform to the root coordinate system.
+     */
+    const Transform& to_root() const;
+
+    /**
      * Handle a transform being reported by SVG++.
-     *
-     * This transforms the coordinate system for this element.
      */
     void transform_matrix(const boost::array<double, 6>& matrix);
 };

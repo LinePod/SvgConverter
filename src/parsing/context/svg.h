@@ -1,7 +1,6 @@
 #ifndef SVG_CONVERTER_PARSING_CONTEXT_SVG_H_
 #define SVG_CONVERTER_PARSING_CONTEXT_SVG_H_
 
-#include "../coordinate_system.h"
 #include "../viewport.h"
 #include "graphics_element.h"
 #include "viewport_establishing.h"
@@ -24,7 +23,7 @@ class SvgContext : public GraphicsElementContext<Exporter>,
                                            logger,
                                            exporter,
                                            global_viewport,
-                                           {}},
+                                           Transform::Identity()},
           // Per SVG spec the default width and height is 100%, so the inner
           // viewport is effectively the same as the outer one.
           ViewportEstablishingContext{global_viewport} {}

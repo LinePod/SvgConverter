@@ -3,7 +3,7 @@
 
 #include <boost/array.hpp>
 
-#include "../coordinate_system.h"
+#include "../../math_defs.h"
 #include "../viewport.h"
 #include "base.h"
 #include "transformable.h"
@@ -42,9 +42,9 @@ class GraphicsElementContext : public BaseContext, public TransformableContext {
 
     GraphicsElementContext(const SvgDocument& document, spdlog::logger& logger,
                            Exporter exporter, const Viewport& viewport,
-                           const CoordinateSystem& coordinate_system)
+                           const Transform& to_root)
         : BaseContext(document, logger),
-          TransformableContext{coordinate_system},
+          TransformableContext{to_root},
           exporter_{exporter},
           viewport_{viewport} {}
 
@@ -52,13 +52,12 @@ class GraphicsElementContext : public BaseContext, public TransformableContext {
      * Creates a new instance from information supplied by a parent context.
      *
      * The parent class must derive from `BaseContext` and have accessible
-     * methods `inner_viewport()`, `inner_coordinate_system()` and
-     * `inner_exporter()`.
+     * methods `inner_viewport()` and `inner_exporter()`.
      */
     template <class ParentContext>
     explicit GraphicsElementContext(ParentContext& parent)
         : BaseContext(parent),
-          TransformableContext{parent.inner_coordinate_system()},
+          TransformableContext{parent.to_root()},
           exporter_{parent.inner_exporter()},
           viewport_{parent.inner_viewport()} {}
 
@@ -70,15 +69,6 @@ class GraphicsElementContext : public BaseContext, public TransformableContext {
      */
     const LengthFactory& length_factory() const {
         return viewport_.length_factory();
-    }
-
-    /**
-     * Used by the `GraphicsElementContext(const ParentContext&)` constructor.
-     *
-     * @return Coordinate system for child elements.
-     */
-    const CoordinateSystem& inner_coordinate_system() const {
-        return coordinate_system();
     }
 
     /**

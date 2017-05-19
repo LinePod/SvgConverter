@@ -6,7 +6,6 @@
 #include <clipper.hpp>
 
 #include "../../math_defs.h"
-#include "../coordinate_system.h"
 #include "../path.h"
 #include "../viewport.h"
 #include "base.h"
@@ -52,7 +51,7 @@ class PatternExporter {
  *
  * @param pattern_size Size of the pattern rectangle in the coordinate system it
  *                     is defined in.
- * @param coordinate_system Coordinate system the pattern is defined in.
+ * @param to_root Transform to the root coordinate system.
  * @param clipping_path Path in global coordinates that should be completely
  *                      tiled.
  * @return List of offsets in root space. If the pattern is repeated at all the
@@ -60,9 +59,9 @@ class PatternExporter {
  *         If the pattern needs to be tiled at its original position (offset
  *         0,0), that will be included in the list as well.
  */
-std::vector<Vector> compute_tiling_offsets(
-    const Vector& pattern_size, const CoordinateSystem& coordinate_system,
-    const Path& clipping_path);
+std::vector<Vector> compute_tiling_offsets(const Vector& pattern_size,
+                                           const Transform& to_root,
+                                           const Path& clipping_path);
 
 ClipperLib::PolyTree clip_tiled_pattern(
     const Path& clipping_path,
@@ -96,8 +95,7 @@ class PatternPseudoContext : public BaseContext {
      */
     PatternPseudoContext(const BaseContext& parent, Exporter exporter,
                          const Viewport& shape_viewport,
-                         const CoordinateSystem& shape_coordinate_system,
-                         const Path& clipping_path);
+                         const Transform& to_root, const Path& clipping_path);
 
     /**
      * Exporter to export the tiled pattern with.
@@ -112,7 +110,7 @@ class PatternPseudoContext : public BaseContext {
     /**
      * Coordinate system of the shape being filled with the pattern.
      */
-    const CoordinateSystem& shape_coordinate_system_;
+    const Transform& to_root_;
 
     /**
      * Path to fill, in global coordinates.
@@ -153,8 +151,6 @@ class PatternContext : public BaseContext,
 
     const LengthFactory& length_factory() const;
 
-    const CoordinateSystem& inner_coordinate_system() const;
-
     detail::PatternExporter inner_exporter();
 
     void on_exit_element();
@@ -163,19 +159,19 @@ class PatternContext : public BaseContext,
 template <class Exporter>
 PatternPseudoContext<Exporter>::PatternPseudoContext(
     const BaseContext& parent, Exporter exporter,
-    const Viewport& shape_viewport,
-    const CoordinateSystem& shape_coordinate_system, const Path& clipping_path)
+    const Viewport& shape_viewport, const Transform& to_root,
+    const Path& clipping_path)
     : BaseContext(parent),
       exporter_(exporter),
       shape_viewport_(shape_viewport),
-      shape_coordinate_system_(shape_coordinate_system),
+      to_root_(to_root),
       clipping_path_(clipping_path) {}
 
 template <class Exporter>
 PatternContext<Exporter>::PatternContext(
     const PatternPseudoContext<Exporter>& pseudo_parent)
     : BaseContext{pseudo_parent},
-      TransformableContext{pseudo_parent.shape_coordinate_system_},
+      TransformableContext{pseudo_parent.to_root_},
       // Pattern viewports have a default size of 0 x 0
       ViewportEstablishingContext{boost::none},
       exporter_{pseudo_parent.exporter_},
@@ -195,20 +191,11 @@ detail::PatternExporter PatternContext<Exporter>::inner_exporter() {
 }
 
 template <class Exporter>
-const CoordinateSystem& PatternContext<Exporter>::inner_coordinate_system()
-    const {
-    // We want the contained shapes to get exported in global coordinates,
-    // therefore we return the full coordinate system including the transforms
-    // from the referencing shape element.
-    return coordinate_system();
-}
-
-template <class Exporter>
 void PatternContext<Exporter>::on_exit_element() {
     auto& pattern_viewport = inner_viewport();
     Vector pattern_size = pattern_viewport.size();
-    auto offsets = detail::compute_tiling_offsets(
-        pattern_size, coordinate_system(), clipping_path_);
+    auto offsets =
+        detail::compute_tiling_offsets(pattern_size, to_root(), clipping_path_);
     ClipperLib::PolyTree poly_tree =
         detail::clip_tiled_pattern(clipping_path_, pattern_paths_, offsets);
 

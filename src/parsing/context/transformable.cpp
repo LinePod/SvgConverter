@@ -1,11 +1,9 @@
 #include "transformable.h"
 
-TransformableContext::TransformableContext(CoordinateSystem coordinate_system)
-    : coordinate_system_{std::move(coordinate_system)} {}
+TransformableContext::TransformableContext(const Transform& to_root)
+    : to_root_{to_root} {}
 
-const CoordinateSystem& TransformableContext::coordinate_system() const {
-    return coordinate_system_;
-}
+const Transform& TransformableContext::to_root() const { return to_root_; }
 
 void TransformableContext::transform_matrix(
     const boost::array<double, 6>& matrix) {
@@ -14,5 +12,5 @@ void TransformableContext::transform_matrix(
     transform.matrix() << matrix[0], matrix[2], matrix[4],
                           matrix[1], matrix[3], matrix[5];
     // clang-format on
-    coordinate_system_ = CoordinateSystem{coordinate_system_, transform};
+    to_root_ = to_root_ * transform;
 }

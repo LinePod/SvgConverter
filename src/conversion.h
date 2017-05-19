@@ -5,6 +5,6 @@
 
 #include "svg.h"
 
-std::string convert(const SvgDocument& svgDoc);
+std::string convert(const SvgDocument& svg_document);
 
 #endif  // SVG_CONVERTER_CONVERSION_H_

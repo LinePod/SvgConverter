@@ -2,12 +2,14 @@
 #define SVG_CONVERTER_PARSING_DASHES_H_
 
 #include <iterator>
+#include <utility>
 #include <vector>
 
 #include <boost/iterator/iterator_adaptor.hpp>
 #include <boost/range.hpp>
 
 #include "../math_defs.h"
+#include "path.h"
 
 namespace detail {
 
@@ -45,8 +47,6 @@ CyclicIterator<T> make_cyclic_iter(const std::vector<T>& vec) {
     return CyclicIterator<T>{vec};
 }
 
-}  // namespace detail
-
 /**
  * A visitor for `Path::to_polylines` that dashifies the visited polyline.
  *
@@ -57,7 +57,9 @@ class DashifyingPolylineVisitor {
  private:
     PolylineVisitorFactory wrapped_visitor_factory_;
 
-    detail::CyclicIterator<double> current_dash_iter_;
+    const Transform& to_local_;
+
+    CyclicIterator<double> current_dash_iter_;
     double current_dash_remaining_;
     bool is_current_dash_empty_ = false;
     Vector current_point_;
@@ -79,7 +81,7 @@ class DashifyingPolylineVisitor {
      *                  of this object.
      */
     DashifyingPolylineVisitor(PolylineVisitorFactory polyline_visitor_factory,
-                              Vector start_point,
+                              const Transform& to_local, Vector start_point,
                               const std::vector<double>& dasharray);
 
     void operator()(Vector point);
@@ -87,10 +89,11 @@ class DashifyingPolylineVisitor {
 
 template <class PolylineVisitorFactory>
 DashifyingPolylineVisitor<PolylineVisitorFactory>::DashifyingPolylineVisitor(
-    PolylineVisitorFactory polyline_visitor_factory, Vector start_point,
-    const std::vector<double>& dasharray)
+    PolylineVisitorFactory polyline_visitor_factory, const Transform& to_local,
+    Vector start_point, const std::vector<double>& dasharray)
     : wrapped_visitor_factory_{polyline_visitor_factory},
-      current_dash_iter_{detail::make_cyclic_iter(dasharray)},
+      to_local_{to_local},
+      current_dash_iter_{make_cyclic_iter(dasharray)},
       current_dash_remaining_{*current_dash_iter_},
       current_point_{std::move(start_point)} {}
 
@@ -107,14 +110,17 @@ void DashifyingPolylineVisitor<PolylineVisitorFactory>::operator()(
     Vector delta = point - current_point_;
     double line_remaining = delta.norm();
     Vector unit_vec = delta.normalized();
+    Vector delta_local = (to_local_ * point) - (to_local_ * current_point_);
+    double from_local_factor = line_remaining / delta_local.norm();
 
-    while (current_dash_remaining_ < line_remaining) {
-        Vector target = current_point_ + current_dash_remaining_ * unit_vec;
+    while (current_dash_remaining_ * from_local_factor < line_remaining) {
+        Vector target = current_point_ +
+                        current_dash_remaining_ * from_local_factor * unit_vec;
         if (!is_current_dash_empty_) {
             report_dash(current_point_, target);
         }
 
-        line_remaining -= current_dash_remaining_;
+        line_remaining -= current_dash_remaining_ * from_local_factor;
         current_dash_iter_++;
         current_dash_remaining_ = *current_dash_iter_;
         current_point_ = target;
@@ -125,8 +131,63 @@ void DashifyingPolylineVisitor<PolylineVisitorFactory>::operator()(
         report_dash(current_point_, point);
     }
 
-    current_dash_remaining_ -= line_remaining;
+    current_dash_remaining_ -= line_remaining / from_local_factor;
     current_point_ = point;
+}
+
+}  // namespace detail
+
+/**
+ * Path with additional info on how to dash its stroke.
+ */
+class DashedPath {
+ private:
+    Path path_;
+    std::vector<double> dasharray_;
+    Transform to_local_;
+
+ public:
+    /**
+     * Creates a new dashed path.
+     *
+     * @param path Path object to extend.
+     * @param dasharray SVG dasharray, with dash lengths in the paths original
+     *                  local coordinate system.
+     * @param to_local Transform from the paths current coordinate system to the
+     *                 local coordinate system that the dash lengths are defined
+     *                 in
+     */
+    DashedPath(Path path, std::vector<double> dasharray,
+               const Transform& to_local)
+        : path_{std::move(path)},
+          dasharray_{std::move(dasharray)},
+          to_local_{to_local} {}
+
+    /**
+     * Creates a dashed path without any actual dashing.
+     */
+    explicit DashedPath(Path path)
+        : path_{std::move(path)}, to_local_{Transform::Identity()} {}
+
+    /**
+     * Like Path::to_polylines, only that the stroke will be dashed,
+     */
+    template <class PolylineVisitorFactory>
+    void to_polylines(PolylineVisitorFactory polyline_visitor_factory) const;
+};
+
+template <class PolylineVisitorFactory>
+void DashedPath::to_polylines(
+    PolylineVisitorFactory polyline_visitor_factory) const {
+    if (dasharray_.empty()) {
+        path_.to_polylines(polyline_visitor_factory);
+    } else {
+        path_.to_polylines([this,
+                            &polyline_visitor_factory](Vector start_point) {
+            return detail::DashifyingPolylineVisitor<PolylineVisitorFactory&>{
+                polyline_visitor_factory, to_local_, start_point, dasharray_};
+        });
+    }
 }
 
 #endif  // SVG_CONVERTER_PARSING_DASHES_H_

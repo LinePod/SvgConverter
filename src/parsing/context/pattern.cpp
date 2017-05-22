@@ -111,7 +111,7 @@ std::vector<Vector> detail::compute_tiling_offsets(const Vector& pattern_size,
 
     Rect bounding_box;
     clipping_path.to_polylines(
-        {}, [&bounding_box, &unit_from_root](Vector start_point) {
+        [&bounding_box, &unit_from_root](Vector start_point) {
             bounding_box.extend(unit_from_root * start_point);
             return [&bounding_box, &unit_from_root](Vector point) {
                 bounding_box.extend(unit_from_root * point);
@@ -140,15 +140,14 @@ std::vector<Vector> detail::compute_tiling_offsets(const Vector& pattern_size,
 }
 
 ClipperLib::PolyTree detail::clip_tiled_pattern(
-    const Path& clipping_path,
-    const std::vector<detail::DashedPath>& pattern_paths,
+    const Path& clipping_path, const std::vector<DashedPath>& pattern_paths,
     const std::vector<Vector>& offsets) {
     // We reuse the same path for all paths added to the clipper instance to
     // save on memory allocation
     ClipperLib::Path clipper_path;
     ClipperLib::Clipper clipper;
 
-    clipping_path.to_polylines({}, [&](Vector start_point) {
+    clipping_path.to_polylines([&](Vector start_point) {
         clipper_path.push_back(to_clipper_point(start_point));
         return make_dual_lambda_visitor(
             [&](Vector point) {
@@ -164,27 +163,25 @@ ClipperLib::PolyTree detail::clip_tiled_pattern(
     // Reused like `clipper_path`
     std::vector<Vector> polyline;
     for (const auto& dashed_path : pattern_paths) {
-        dashed_path.path.to_polylines(
-            dashed_path.dasharray, [&](Vector start_point) {
-                polyline.push_back(start_point);
-                return make_dual_lambda_visitor(
-                    [&](Vector point) { polyline.push_back(point); },
-                    [&]() {
-                        for (const Vector& offset : offsets) {
-                            for (const Vector& point : polyline) {
-                                clipper_path.push_back(
-                                    to_clipper_point(point + offset));
-                            }
-
-                            clipper.AddPath(clipper_path,
-                                            ClipperLib::PolyType::ptSubject,
-                                            false);
-                            clipper_path.clear();
+        dashed_path.to_polylines([&](Vector start_point) {
+            polyline.push_back(start_point);
+            return make_dual_lambda_visitor(
+                [&](Vector point) { polyline.push_back(point); },
+                [&]() {
+                    for (const Vector& offset : offsets) {
+                        for (const Vector& point : polyline) {
+                            clipper_path.push_back(
+                                to_clipper_point(point + offset));
                         }
 
-                        polyline.clear();
-                    });
-            });
+                        clipper.AddPath(clipper_path,
+                                        ClipperLib::PolyType::ptSubject, false);
+                        clipper_path.clear();
+                    }
+
+                    polyline.clear();
+                });
+        });
     }
 
     ClipperLib::PolyTree result;
@@ -199,6 +196,6 @@ Vector detail::from_clipper_point(ClipperLib::IntPoint point) {
 detail::PatternExporter::PatternExporter(std::vector<DashedPath>& paths)
     : paths_{paths} {}
 
-void detail::PatternExporter::plot(Path path, std::vector<double> dasharray) {
-    paths_.push_back({std::move(path), std::move(dasharray)});
+void detail::PatternExporter::plot(DashedPath path) {
+    paths_.emplace_back(std::move(path));
 }

@@ -5,7 +5,7 @@
 #include <sstream>
 
 #include "../math_defs.h"
-#include "path.h"
+#include "dashes.h"
 
 class GpglExporter {
  private:
@@ -22,11 +22,9 @@ class GpglExporter {
     explicit GpglExporter(std::ostringstream& out_stream);
 
     /**
-     * Export the given path using the given dasharray.
-     *
-     * If the dasharray is empty, the lines are drawn fully solid.
+     * Export the given dashed path.
      */
-    void plot(const Path& path, const std::vector<double>& dasharray);
+    void plot(const DashedPath& path);
 };
 
 #endif  // SVG_CONVERTER_PARSING_GPGL_EXPORTER_H_

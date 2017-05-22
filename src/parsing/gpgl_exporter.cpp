@@ -25,9 +25,8 @@ GpglExporter::GpglExporter(std::ostringstream& out_stream)
     out_stream_.get() << std::setprecision(0) << std::fixed;
 }
 
-void GpglExporter::plot(const Path& path,
-                        const std::vector<double>& dasharray) {
-    path.to_polylines(dasharray, [this](Vector start_point) {
+void GpglExporter::plot(const DashedPath& path) {
+    path.to_polylines([this](Vector start_point) {
         start_point = to_gpgl(start_point);
         out_stream_.get() << "M " << start_point(0) << ',' << start_point(1)
                           << '\x03';

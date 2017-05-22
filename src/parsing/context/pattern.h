@@ -6,6 +6,7 @@
 #include <clipper.hpp>
 
 #include "../../math_defs.h"
+#include "../dashes.h"
 #include "../path.h"
 #include "../viewport.h"
 #include "base.h"
@@ -13,14 +14,6 @@
 #include "viewport_establishing.h"
 
 namespace detail {
-
-/**
- * Holds a path with associated dasharray for later tiling.
- */
-struct DashedPath {
-    Path path;
-    std::vector<double> dasharray;
-};
 
 /**
  * Exports shapes to a list of paths, which can than be tiled later.
@@ -43,7 +36,7 @@ class PatternExporter {
      *
      * If the dasharray is empty, the lines are drawn fully solid.
      */
-    void plot(Path path, std::vector<double> dasharray);
+    void plot(DashedPath path);
 };
 
 /**
@@ -64,8 +57,7 @@ std::vector<Vector> compute_tiling_offsets(const Vector& pattern_size,
                                            const Path& clipping_path);
 
 ClipperLib::PolyTree clip_tiled_pattern(
-    const Path& clipping_path,
-    const std::vector<detail::DashedPath>& pattern_paths,
+    const Path& clipping_path, const std::vector<DashedPath>& pattern_paths,
     const std::vector<Vector>& offsets);
 
 Vector from_clipper_point(ClipperLib::IntPoint point);
@@ -143,7 +135,7 @@ class PatternContext : public BaseContext,
     /**
      * Filled with all paths in the pattern via `PatternExporter`.
      */
-    std::vector<detail::DashedPath> pattern_paths_;
+    std::vector<DashedPath> pattern_paths_;
 
  public:
     explicit PatternContext(
@@ -202,12 +194,12 @@ void PatternContext<Exporter>::on_exit_element() {
     ClipperLib::Paths paths;
     ClipperLib::PolyTreeToPaths(poly_tree, paths);
 
-    Path svg_path;
     for (const auto& path : paths) {
         if (path.empty()) {
             continue;
         }
 
+        Path svg_path;
         svg_path.push_command(
             MoveCommand{detail::from_clipper_point(path.front())});
         for (std::size_t i = 1; i < path.size(); i++) {
@@ -215,8 +207,7 @@ void PatternContext<Exporter>::on_exit_element() {
                 LineCommand{detail::from_clipper_point(path[i])});
         }
 
-        exporter_.plot(svg_path, {});
-        svg_path.clear();
+        exporter_.plot(DashedPath{std::move(svg_path)});
     }
 }
 

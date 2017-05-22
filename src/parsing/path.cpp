@@ -44,5 +44,3 @@ void Path::transform(const Transform& transform) {
                 command);
         });
 }
-
-void Path::clear() { commands_.clear(); }

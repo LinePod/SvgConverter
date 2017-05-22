@@ -19,9 +19,7 @@ class SvgContext : public GraphicsElementContext<Exporter>,
      */
     explicit SvgContext(const SvgDocument& document, spdlog::logger& logger,
                         Exporter exporter, const Viewport& global_viewport)
-        : GraphicsElementContext<Exporter>{document,
-                                           logger,
-                                           exporter,
+        : GraphicsElementContext<Exporter>{document, logger, exporter,
                                            global_viewport,
                                            Transform::Identity()},
           // Per SVG spec the default width and height is 100%, so the inner

@@ -11,7 +11,6 @@
 
 #include "../bezier.h"
 #include "../math_defs.h"
-#include "dashes.h"
 
 namespace detail {
 
@@ -155,28 +154,6 @@ BezierCommand transformed(BezierCommand command, const Transform& transform);
 CloseSubpathCommand transformed(CloseSubpathCommand command,
                                 const Transform& /*unused*/);
 
-/**
- * Implementation of path to polyline conversion without dashes.
- */
-template <class PolylineVisitorFactory>
-void path_to_polylines(const std::vector<PathCommand>& commands,
-                       PolylineVisitorFactory polyline_visitor_factory) {
-    if (commands.empty()) {
-        return;
-    }
-
-    auto* move_cmd_ptr = boost::get<MoveCommand>(&commands.front());
-    if (move_cmd_ptr == nullptr) {
-        throw InvalidPathError{};
-    }
-
-    PathToPolylineVisitor<PolylineVisitorFactory> command_visitor{
-        move_cmd_ptr->target, polyline_visitor_factory};
-    for (const auto& command : commands) {
-        boost::apply_visitor(command_visitor, command);
-    }
-}
-
 }  // namespace detail
 
 /**
@@ -202,8 +179,6 @@ class Path {
     /**
      * Convert a path to a series of polylines.
      *
-     * @param dasharray SVG dasharray to apply to all parts of the path. When
-     *                  empty, all polylines will be solid.
      * @param polyline_visitor_factory Factory to create a visitor for a
      *                                 polyline. The factory will be called with
      *                                 the starting point as the only parameter.
@@ -213,26 +188,24 @@ class Path {
      *                                 the visitor will be destructed.
      */
     template <class PolylineVisitorFactory>
-    void to_polylines(const std::vector<double>& dasharray,
-                      PolylineVisitorFactory polyline_visitor_factory) const;
-
-    /**
-     * Resets the path to be empty.
-     */
-    void clear();
+    void to_polylines(PolylineVisitorFactory polyline_visitor_factory) const;
 };
 
 template <class PolylineVisitorFactory>
-void Path::to_polylines(const std::vector<double>& dasharray,
-                        PolylineVisitorFactory polyline_visitor_factory) const {
-    if (dasharray.empty()) {
-        detail::path_to_polylines(commands_, polyline_visitor_factory);
-    } else {
-        detail::path_to_polylines(commands_, [&polyline_visitor_factory,
-                                              &dasharray](Vector start_point) {
-            return DashifyingPolylineVisitor<PolylineVisitorFactory&>{
-                polyline_visitor_factory, start_point, dasharray};
-        });
+void Path::to_polylines(PolylineVisitorFactory polyline_visitor_factory) const {
+    if (commands_.empty()) {
+        return;
+    }
+
+    auto* move_cmd_ptr = boost::get<MoveCommand>(&commands_.front());
+    if (move_cmd_ptr == nullptr) {
+        throw InvalidPathError{};
+    }
+
+    detail::PathToPolylineVisitor<PolylineVisitorFactory> command_visitor{
+        move_cmd_ptr->target, polyline_visitor_factory};
+    for (const auto& command : commands_) {
+        boost::apply_visitor(command_visitor, command);
     }
 }
 

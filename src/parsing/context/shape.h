@@ -7,6 +7,7 @@
 #include <boost/mpl/set.hpp>
 
 #include "../../math_defs.h"
+#include "../dashes.h"
 #include "../path.h"
 #include "../svgpp.h"
 #include "../traversal.h"
@@ -141,24 +142,24 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
 template <class Exporter>
 template <class ParentContext>
 ShapeContext<Exporter>::ShapeContext(ParentContext& parent)
-        : GraphicsElementContext<Exporter>{parent} {}
+    : GraphicsElementContext<Exporter>{parent} {}
 
 template <class Exporter>
 void ShapeContext<Exporter>::path_move_to(
-        double x, double y, svgpp::tag::coordinate::absolute /*unused*/) {
+    double x, double y, svgpp::tag::coordinate::absolute /*unused*/) {
     path_.push_command(MoveCommand{{x, y}});
 }
 
 template <class Exporter>
 void ShapeContext<Exporter>::path_line_to(
-        double x, double y, svgpp::tag::coordinate::absolute /*unused*/) {
+    double x, double y, svgpp::tag::coordinate::absolute /*unused*/) {
     path_.push_command(LineCommand{{x, y}});
 }
 
 template <class Exporter>
 void ShapeContext<Exporter>::path_cubic_bezier_to(
-        double x1, double y1, double x2, double y2, double x, double y,
-        svgpp::tag::coordinate::absolute /*unused*/) {
+    double x1, double y1, double x2, double y2, double x, double y,
+    svgpp::tag::coordinate::absolute /*unused*/) {
     path_.push_command(BezierCommand{{x, y}, {x1, y1}, {x2, y2}});
 }
 
@@ -182,31 +183,34 @@ void ShapeContext<Exporter>::on_exit_element() {
     if (!fill_fragment_iri_.empty()) {
         auto referenced_node = this->document_.find_by_id(fill_fragment_iri_);
         PatternPseudoContext<Exporter> context{
-                *this, this->exporter_, this->viewport_, this->to_root(), path_};
+            *this, this->exporter_, this->viewport_, this->to_root(), path_};
         DocumentTraversal::load_referenced_element<
-                svgpp::expected_elements<ExpectedElements>,
-                svgpp::processed_elements<ProcessedElements>>::load(referenced_node,
-                                                                    context);
+            svgpp::expected_elements<ExpectedElements>,
+            svgpp::processed_elements<ProcessedElements>>::load(referenced_node,
+                                                                context);
     }
 
     if (stroke_) {
         // We move the path and dasharray, so that an exporter can store
         // them for later use without copying.
-        this->exporter_.plot(std::move(path_), std::move(dasharray_));
+        DashedPath dashed_path{
+            std::move(path_), std::move(dasharray_),
+            this->to_root().inverse(Eigen::TransformTraits::AffineCompact)};
+        this->exporter_.plot(std::move(dashed_path));
     }
 }
 
 template <class Exporter>
 void ShapeContext<Exporter>::set(
-        svgpp::tag::attribute::stroke_dasharray /*unused*/,
-        svgpp::tag::value::none /*unused*/) {
+    svgpp::tag::attribute::stroke_dasharray /*unused*/,
+    svgpp::tag::value::none /*unused*/) {
     dasharray_.clear();
 }
 
 template <class Exporter>
 template <class Range>
 void ShapeContext<Exporter>::set(
-        svgpp::tag::attribute::stroke_dasharray /*unused*/, const Range& range) {
+    svgpp::tag::attribute::stroke_dasharray /*unused*/, const Range& range) {
     dasharray_.assign(boost::begin(range), boost::end(range));
 }
 

@@ -17,9 +17,11 @@ set(CXX_SOURCE_FILES
         src/conversion.cpp
         src/logging.cpp
         src/main.cpp
+        src/parsing/context/base.cpp
         src/parsing/context/pattern.cpp
         src/parsing/context/transformable.cpp
         src/parsing/context/viewport_establishing.cpp
+        src/parsing/dashes.cpp
         src/parsing/gpgl_exporter.cpp
         src/parsing/path.cpp
         src/parsing/svgpp_external_parsers.cpp

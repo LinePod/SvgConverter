@@ -42,11 +42,7 @@ class GraphicsElementContext : public BaseContext, public TransformableContext {
 
     GraphicsElementContext(const SvgDocument& document, spdlog::logger& logger,
                            Exporter exporter, const Viewport& viewport,
-                           const Transform& to_root)
-        : BaseContext(document, logger),
-          TransformableContext{to_root},
-          exporter_{exporter},
-          viewport_{viewport} {}
+                           const Transform& to_root);
 
     /**
      * Creates a new instance from information supplied by a parent context.
@@ -55,11 +51,7 @@ class GraphicsElementContext : public BaseContext, public TransformableContext {
      * methods `inner_viewport()` and `inner_exporter()`.
      */
     template <class ParentContext>
-    explicit GraphicsElementContext(ParentContext& parent)
-        : BaseContext(parent),
-          TransformableContext{parent.to_root()},
-          exporter_{parent.inner_exporter()},
-          viewport_{parent.inner_viewport()} {}
+    explicit GraphicsElementContext(ParentContext& parent);
 
  public:
     /**
@@ -67,9 +59,7 @@ class GraphicsElementContext : public BaseContext, public TransformableContext {
      *
      * Based on the viewport the element is in.
      */
-    const LengthFactory& length_factory() const {
-        return viewport_.length_factory();
-    }
+    const LengthFactory& length_factory() const;
 
     /**
      * Provides the exporter for child elements.
@@ -77,7 +67,34 @@ class GraphicsElementContext : public BaseContext, public TransformableContext {
      * All graphics elements use the same exporter for their children that was
      * used for them.
      */
-    Exporter inner_exporter() const { return exporter_; }
+    Exporter inner_exporter() const;
 };
+
+template <class Exporter>
+GraphicsElementContext<Exporter>::GraphicsElementContext(const SvgDocument& document,
+                                               spdlog::logger& logger,
+                                               Exporter exporter,
+                                               const Viewport& viewport,
+                                               const Transform& to_root)
+        : BaseContext(document, logger),
+          TransformableContext{to_root},
+          exporter_{exporter},
+          viewport_{viewport} {}
+
+template <class Exporter>
+template <class ParentContext>
+GraphicsElementContext<Exporter>::GraphicsElementContext(ParentContext& parent)
+        : BaseContext(parent),
+          TransformableContext{parent.to_root()},
+          exporter_{parent.inner_exporter()},
+          viewport_{parent.inner_viewport()} {}
+
+template <class Exporter>
+const LengthFactory& GraphicsElementContext<Exporter>::length_factory() const {
+    return viewport_.length_factory();
+}
+
+template <class Exporter>
+Exporter GraphicsElementContext<Exporter>::inner_exporter() const { return exporter_; }
 
 #endif  // SVG_CONVERTER_PARSING_CONTEXT_GRAPHICS_ELEMENT_H_

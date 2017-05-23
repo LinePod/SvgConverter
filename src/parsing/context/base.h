@@ -25,8 +25,7 @@ class BaseContext {
      */
     spdlog::logger& logger_;
 
-    explicit BaseContext(const SvgDocument& document, spdlog::logger& logger)
-        : document_{document}, logger_{logger} {}
+    explicit BaseContext(const SvgDocument& document, spdlog::logger& logger);
 
  public:
     /**
@@ -35,7 +34,7 @@ class BaseContext {
      * Needs to be defined for every context but seldom contains any logic,
      * therefore defined here to avoid boilerplate.
      */
-    void on_exit_element() {}
+    void on_exit_element();
 };
 
 #endif  // SVG_CONVERTER_PARSING_CONTEXT_BASE_H_

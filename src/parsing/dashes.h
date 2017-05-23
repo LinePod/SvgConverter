@@ -158,16 +158,12 @@ class DashedPath {
      *                 in
      */
     DashedPath(Path path, std::vector<double> dasharray,
-               const Transform& to_local)
-        : path_{std::move(path)},
-          dasharray_{std::move(dasharray)},
-          to_local_{to_local} {}
+               const Transform& to_local);
 
     /**
      * Creates a dashed path without any actual dashing.
      */
-    explicit DashedPath(Path path)
-        : path_{std::move(path)}, to_local_{Transform::Identity()} {}
+    explicit DashedPath(Path path);
 
     /**
      * Like Path::to_polylines, only that the stroke will be dashed,

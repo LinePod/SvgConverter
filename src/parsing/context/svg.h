@@ -18,19 +18,27 @@ class SvgContext : public GraphicsElementContext<Exporter>,
      * @param global_viewport Global viewport representing the available space.
      */
     explicit SvgContext(const SvgDocument& document, spdlog::logger& logger,
-                        Exporter exporter, const Viewport& global_viewport)
+                        Exporter exporter, const Viewport& global_viewport);
+
+    template <class ParentContext>
+    explicit SvgContext(ParentContext& parent);
+};
+
+template <class Exporter>
+SvgContext<Exporter>::SvgContext(const SvgDocument& document, spdlog::logger& logger,
+                       Exporter exporter, const Viewport& global_viewport)
         : GraphicsElementContext<Exporter>{document, logger, exporter,
                                            global_viewport,
                                            Transform::Identity()},
-          // Per SVG spec the default width and height is 100%, so the inner
-          // viewport is effectively the same as the outer one.
+        // Per SVG spec the default width and height is 100%, so the inner
+        // viewport is effectively the same as the outer one.
           ViewportEstablishingContext{global_viewport} {}
 
-    template <class ParentContext>
-    explicit SvgContext(ParentContext& parent)
+template <class Exporter>
+template<class ParentContext>
+SvgContext<Exporter>::SvgContext(ParentContext& parent)
         : GraphicsElementContext<Exporter>{parent},
-          // See remark on the constructor above.
+        // See remark on the constructor above.
           ViewportEstablishingContext{this->viewport_} {}
-};
 
 #endif  // SVG_CONVERTER_PARSING_CONTEXT_SVG_H_

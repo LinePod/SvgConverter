@@ -71,23 +71,21 @@ class GraphicsElementContext : public BaseContext, public TransformableContext {
 };
 
 template <class Exporter>
-GraphicsElementContext<Exporter>::GraphicsElementContext(const SvgDocument& document,
-                                               spdlog::logger& logger,
-                                               Exporter exporter,
-                                               const Viewport& viewport,
-                                               const Transform& to_root)
-        : BaseContext(document, logger),
-          TransformableContext{to_root},
-          exporter_{exporter},
-          viewport_{viewport} {}
+GraphicsElementContext<Exporter>::GraphicsElementContext(
+    const SvgDocument& document, spdlog::logger& logger, Exporter exporter,
+    const Viewport& viewport, const Transform& to_root)
+    : BaseContext(document, logger),
+      TransformableContext{to_root},
+      exporter_{exporter},
+      viewport_{viewport} {}
 
 template <class Exporter>
 template <class ParentContext>
 GraphicsElementContext<Exporter>::GraphicsElementContext(ParentContext& parent)
-        : BaseContext(parent),
-          TransformableContext{parent.to_root()},
-          exporter_{parent.inner_exporter()},
-          viewport_{parent.inner_viewport()} {}
+    : BaseContext(parent),
+      TransformableContext{parent.to_root()},
+      exporter_{parent.inner_exporter()},
+      viewport_{parent.inner_viewport()} {}
 
 template <class Exporter>
 const LengthFactory& GraphicsElementContext<Exporter>::length_factory() const {
@@ -95,6 +93,8 @@ const LengthFactory& GraphicsElementContext<Exporter>::length_factory() const {
 }
 
 template <class Exporter>
-Exporter GraphicsElementContext<Exporter>::inner_exporter() const { return exporter_; }
+Exporter GraphicsElementContext<Exporter>::inner_exporter() const {
+    return exporter_;
+}
 
 #endif  // SVG_CONVERTER_PARSING_CONTEXT_GRAPHICS_ELEMENT_H_

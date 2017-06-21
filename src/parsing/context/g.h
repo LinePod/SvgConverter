@@ -19,12 +19,14 @@ class GContext : public GraphicsElementContext<Exporter> {
     const Viewport& inner_viewport() const;
 };
 
-template<class Exporter>
-template<class ParentContext>
+template <class Exporter>
+template <class ParentContext>
 GContext<Exporter>::GContext(ParentContext& parent)
-        : GraphicsElementContext<Exporter>{parent} {}
+    : GraphicsElementContext<Exporter>{parent} {}
 
 template <class Exporter>
-const Viewport& GContext<Exporter>::inner_viewport() const { return this->viewport_; }
+const Viewport& GContext<Exporter>::inner_viewport() const {
+    return this->viewport_;
+}
 
 #endif  // SVG_CONVERTER_PARSING_CONTEXT_G_H_

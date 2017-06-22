@@ -59,7 +59,7 @@ class SvgContext : public GraphicsElementContext<Exporter> {
      *
      * Used to disable traversal of child elements.
      */
-    bool rendering_disabled() const;
+    bool process_children() const;
 };
 
 template <class Exporter>
@@ -106,8 +106,8 @@ void SvgContext<Exporter>::disable_rendering() {
 }
 
 template <class Exporter>
-bool SvgContext<Exporter>::rendering_disabled() const {
-    return !inner_viewport_;
+bool SvgContext<Exporter>::process_children() const {
+    return inner_viewport_ != boost::none;
 }
 
 #endif  // SVG_CONVERTER_PARSING_CONTEXT_SVG_H_

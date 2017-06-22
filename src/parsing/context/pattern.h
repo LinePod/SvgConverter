@@ -175,6 +175,11 @@ class PatternContext : public BaseContext, public TransformableContext {
      * @return Viewport for child elements.
      */
     const Viewport& inner_viewport() const;
+
+    /**
+     * Disable processing children if rendering is disabled.
+     */
+    bool process_children() const;
 };
 
 template <class Exporter>
@@ -265,6 +270,11 @@ void PatternContext<Exporter>::on_exit_element() {
 template <class Exporter>
 const Viewport& PatternContext<Exporter>::inner_viewport() const {
     return shape_viewport_;
+}
+
+template <class Exporter>
+bool PatternContext<Exporter>::process_children() const {
+    return size_ != boost::none;
 }
 
 #endif  // SVG_CONVERTER_PARSING_CONTEXT_PATTERN_H_

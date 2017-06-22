@@ -22,8 +22,9 @@ namespace attrib = svgpp::tag::attribute;
  * rendering is disabled (viewport width and/or height of zero).
  */
 struct DocumentTraversalControlPolicy {
-    static bool proceed_to_element_content(const BaseContext& /*unused*/) {
-        return true;
+    template <class Context>
+    static bool proceed_to_element_content(const Context& context) {
+        return context.process_children();
     }
 
     template <class Context>
@@ -110,6 +111,8 @@ struct LengthPolicy {
 using DocumentTraversal = svgpp::document_traversal<
     svgpp::processed_elements<detail::ProcessedElements>,
     svgpp::processed_attributes<detail::ProcessedAttributes>,
+    svgpp::document_traversal_control_policy<
+        detail::DocumentTraversalControlPolicy>,
     svgpp::context_factories<ChildContextFactories>,
     svgpp::path_policy<detail::PathPolicy>,
     svgpp::length_policy<detail::LengthPolicy>,

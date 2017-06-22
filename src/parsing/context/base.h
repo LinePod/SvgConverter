@@ -35,6 +35,14 @@ class BaseContext {
      * therefore defined here to avoid boilerplate.
      */
     void on_exit_element();
+
+    /**
+     * Whether to process child elements of this element.
+     *
+     * Defaults to always return true. Reported to SVG++ via
+     * `DocumentTraversalControlPolicy`.
+     */
+    bool process_children() const;
 };
 
 #endif  // SVG_CONVERTER_PARSING_CONTEXT_BASE_H_

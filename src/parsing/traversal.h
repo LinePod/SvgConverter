@@ -6,7 +6,6 @@
 #include "../mpl_util.h"
 #include "context/factories.h"
 #include "context/fwd.h"
-#include "context/viewport_establishing.h"
 #include "svgpp.h"
 #include "viewport.h"
 
@@ -19,17 +18,12 @@ namespace attrib = svgpp::tag::attribute;
 /**
  * Controls SVG++'s traversal of the SVG document.
  *
- * Used to not traverse children of <svg> or <pattern> elements for which
+ * Used to not traverse children of <svg> and <pattern> elements for which
  * rendering is disabled (viewport width and/or height of zero).
  */
 struct DocumentTraversalControlPolicy {
     static bool proceed_to_element_content(const BaseContext& /*unused*/) {
         return true;
-    }
-
-    static bool proceed_to_element_content(
-        const ViewportEstablishingContext& context) {
-        return !context.rendering_disabled();
     }
 
     template <class Context>

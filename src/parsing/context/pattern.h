@@ -11,7 +11,6 @@
 #include "../viewport.h"
 #include "base.h"
 #include "transformable.h"
-#include "viewport_establishing.h"
 
 namespace detail {
 
@@ -122,9 +121,7 @@ class PatternPseudoContext : public BaseContext {
  * contains multiple polygons, the pattern will be parsed once for each polygon.
  */
 template <class Exporter>
-class PatternContext : public BaseContext,
-                       public TransformableContext,
-                       public ViewportEstablishingContext {
+class PatternContext : public BaseContext, public TransformableContext {
  private:
     Exporter exporter_;
 
@@ -137,6 +134,13 @@ class PatternContext : public BaseContext,
      */
     std::vector<DashedPath> pattern_paths_;
 
+    /**
+     * Size of the pattern as set by `width` and `height` or by `viewBox`.
+     *
+     * `none` if rendering was disabled via a width/height of 0.
+     */
+    boost::optional<Vector> size_ = boost::none;
+
  public:
     explicit PatternContext(
         const PatternPseudoContext<Exporter>& pseudo_parent);
@@ -145,7 +149,32 @@ class PatternContext : public BaseContext,
 
     detail::PatternExporter inner_exporter();
 
+    /**
+     * SVG++ event reporting x, y, width and height properties.
+     */
+    void set_viewport(double /*unused*/, double /*unused*/, double width,
+                      double height);
+
+    /**
+     * SVG++ event reporting the viewbox size set by the `viewbox` attribute.
+     */
+    void set_viewbox_size(double width, double height);
+
+    /**
+     * SVG++ event reporting viewport width and/or height being set to 0.
+     *
+     * The SVG spec defines that the content rendering should be disabled in
+     * this case.
+     */
+    void disable_rendering();
+
     void on_exit_element();
+
+    /**
+     * Used by the `GraphicsElementContext(const ParentContext&)` constructor.
+     * @return Viewport for child elements.
+     */
+    const Viewport& inner_viewport() const;
 };
 
 template <class Exporter>
@@ -165,7 +194,6 @@ PatternContext<Exporter>::PatternContext(
     : BaseContext{pseudo_parent},
       TransformableContext{pseudo_parent.to_root_},
       // Pattern viewports have a default size of 0 x 0
-      ViewportEstablishingContext{boost::none},
       exporter_{pseudo_parent.exporter_},
       shape_viewport_{pseudo_parent.shape_viewport_},
       clipping_path_{pseudo_parent.clipping_path_} {}
@@ -183,11 +211,34 @@ detail::PatternExporter PatternContext<Exporter>::inner_exporter() {
 }
 
 template <class Exporter>
+void PatternContext<Exporter>::set_viewport(double /*unused*/,
+                                            double /*unused*/, double width,
+                                            double height) {
+    // Scaling and translation due to x, y, width, height and viewBox is
+    // handled by SVG++ due to the viewport policy `as_transform`
+    size_ = Vector{width, height};
+}
+
+template <class Exporter>
+void PatternContext<Exporter>::set_viewbox_size(double width, double height) {
+    // Scaling and translation due to x, y, width, height and viewBox is
+    // handled by SVG++ due to the viewport policy `as_transform`
+    size_ = Vector{width, height};
+}
+
+template <class Exporter>
+void PatternContext<Exporter>::disable_rendering() {
+    size_ = boost::none;
+}
+
+template <class Exporter>
 void PatternContext<Exporter>::on_exit_element() {
-    auto& pattern_viewport = inner_viewport();
-    Vector pattern_size = pattern_viewport.size();
+    if (!size_) {
+        return;
+    }
+
     auto offsets =
-        detail::compute_tiling_offsets(pattern_size, to_root(), clipping_path_);
+        detail::compute_tiling_offsets(*size_, to_root(), clipping_path_);
     ClipperLib::PolyTree poly_tree =
         detail::clip_tiled_pattern(clipping_path_, pattern_paths_, offsets);
 
@@ -209,6 +260,11 @@ void PatternContext<Exporter>::on_exit_element() {
 
         exporter_.plot(DashedPath{std::move(svg_path)});
     }
+}
+
+template <class Exporter>
+const Viewport& PatternContext<Exporter>::inner_viewport() const {
+    return shape_viewport_;
 }
 
 #endif  // SVG_CONVERTER_PARSING_CONTEXT_PATTERN_H_

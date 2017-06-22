@@ -20,7 +20,6 @@ set(CXX_SOURCE_FILES
         src/parsing/context/base.cpp
         src/parsing/context/pattern.cpp
         src/parsing/context/transformable.cpp
-        src/parsing/context/viewport_establishing.cpp
         src/parsing/dashes.cpp
         src/parsing/gpgl_exporter.cpp
         src/parsing/path.cpp
@@ -44,7 +43,6 @@ set(CXX_SOURCE_AND_HEADER_FILES
         src/parsing/context/shape.h
         src/parsing/context/svg.h
         src/parsing/context/transformable.h
-        src/parsing/context/viewport_establishing.h
         src/parsing/dashes.h
         src/parsing/gpgl_exporter.h
         src/parsing/path.h

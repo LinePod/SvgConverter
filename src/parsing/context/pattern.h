@@ -10,6 +10,7 @@
 #include "../path.h"
 #include "../viewport.h"
 #include "base.h"
+#include "shape.h"
 #include "transformable.h"
 
 namespace detail {
@@ -64,69 +65,33 @@ Vector from_clipper_point(ClipperLib::IntPoint point);
 }  // namespace detail
 
 /**
- * Pseudo context used to pass needed data to a `PatternContext`.
- *
- * This context should be created in a `ShapeContext`, filled with the needed
- * data and passed to `load_referencing_element`. SVG++ will then create a
- * `PatternContext` which will get its data from the pseudo context.
- *
- * Named pseudo context because it is not associated with an element and only
- * used to forward data.
- *
- * Still implements `BaseContext` to avoid special cases in some instances.
- */
-template <class Exporter>
-class PatternPseudoContext : public BaseContext {
- public:
-    /**
-     * Creates a new instance.
-     *
-     * All references have to be valid for the lifetime of the context and its
-     * descendants.
-     */
-    PatternPseudoContext(const BaseContext& parent, Exporter exporter,
-                         const Viewport& shape_viewport,
-                         const Transform& to_root, const Path& clipping_path);
-
-    /**
-     * Exporter to export the tiled pattern with.
-     */
-    Exporter exporter_;
-
-    /**
-     * Viewport of the shape being filled with the pattern.
-     */
-    const Viewport& shape_viewport_;
-
-    /**
-     * Coordinate system of the shape being filled with the pattern.
-     */
-    const Transform& to_root_;
-
-    /**
-     * Path to fill, in global coordinates.
-     */
-    const Path& clipping_path_;
-};
-
-/**
  * Context for <pattern> elements.
  *
- * This context will be created by SVG++ when passing a `PatternPseudoContext`
+ * This context will be created by SVG++ when passing a `ShapeContext`
  * and a <pattern> element to `load_referencing_element`.
  *
  * It needs shape specific information (like the current viewport and coordinate
  * system as well as the area being tiled with the pattern). If multiple shapes
- * use the same pattern, it is parsed once for each shape. Also, if <path>
- * contains multiple polygons, the pattern will be parsed once for each polygon.
+ * use the same pattern, it is parsed once for each shape.
  */
 template <class Exporter>
 class PatternContext : public BaseContext, public TransformableContext {
  private:
+    /**
+     * Exporter to export the final tiled and clipped pattern to.
+     */
     Exporter exporter_;
 
+    /**
+     * Viewport of the shape being filled with this pattern.
+     */
     const Viewport& shape_viewport_;
 
+    /**
+     * Outline of the shape to fill with this pattern.
+     *
+     * Used to clip the pattern to the shape.
+     */
     const Path& clipping_path_;
 
     /**
@@ -142,8 +107,8 @@ class PatternContext : public BaseContext, public TransformableContext {
     boost::optional<Vector> size_ = boost::none;
 
  public:
-    explicit PatternContext(
-        const PatternPseudoContext<Exporter>& pseudo_parent);
+    template <class ParentExporter>
+    explicit PatternContext(const ShapeContext<ParentExporter>& shape_context);
 
     const LengthFactory& length_factory() const;
 
@@ -183,25 +148,15 @@ class PatternContext : public BaseContext, public TransformableContext {
 };
 
 template <class Exporter>
-PatternPseudoContext<Exporter>::PatternPseudoContext(
-    const BaseContext& parent, Exporter exporter,
-    const Viewport& shape_viewport, const Transform& to_root,
-    const Path& clipping_path)
-    : BaseContext(parent),
-      exporter_(exporter),
-      shape_viewport_(shape_viewport),
-      to_root_(to_root),
-      clipping_path_(clipping_path) {}
-
-template <class Exporter>
+template <class ParentExporter>
 PatternContext<Exporter>::PatternContext(
-    const PatternPseudoContext<Exporter>& pseudo_parent)
-    : BaseContext{pseudo_parent},
-      TransformableContext{pseudo_parent.to_root_},
+    const ShapeContext<ParentExporter>& shape_context)
+    : BaseContext{shape_context},
+      TransformableContext{shape_context.to_root()},
       // Pattern viewports have a default size of 0 x 0
-      exporter_{pseudo_parent.exporter_},
-      shape_viewport_{pseudo_parent.shape_viewport_},
-      clipping_path_{pseudo_parent.clipping_path_} {}
+      exporter_{shape_context.inner_exporter()},
+      shape_viewport_{shape_context.inner_viewport()},
+      clipping_path_{shape_context.outline_path()} {}
 
 template <class Exporter>
 const LengthFactory& PatternContext<Exporter>::length_factory() const {

@@ -52,8 +52,8 @@ struct CCFImpl<ParentContext, ElementTag,
 };
 
 template <class Exporter>
-struct CCFImpl<PatternPseudoContext<Exporter>, element::pattern> {
-    using type = PatternContext<Exporter>;
+struct CCFImpl<ShapeContext<Exporter>, element::pattern> {
+    using type = PatternContext<InnerExporter<ShapeContext<Exporter>>>;
 };
 
 }  // namespace detail
@@ -72,8 +72,7 @@ struct CCFImpl<PatternPseudoContext<Exporter>, element::pattern> {
  *  - `SvgContext` for `<svg>` elements
  *  - `GContext` for `<g>` elements
  *  - `ShapeContext` for shape elements (`<path>`, `<rect>`, etc.)
- *  - `PatternContext` for <pattern>, but only with `PatternPseudoContext` as a
- *     parent (see `pattern.h` for why this is needed).
+ *  - `PatternContext` for <pattern>, but only with `ShapeContext` as a parent.
  */
 struct ChildContextFactories {
     template <class ParentContext, class ElementTag>

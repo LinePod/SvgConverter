@@ -12,7 +12,6 @@
 #include "../svgpp.h"
 #include "../traversal.h"
 #include "graphics_element.h"
-#include "pattern.h"
 
 namespace detail {
 
@@ -77,6 +76,13 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
  public:
     template <class ParentContext>
     explicit ShapeContext(ParentContext& parent);
+
+    /**
+     * Outline path of the shape.
+     *
+     * Used by `PatternContext` to fill this shape with a pattern.
+     */
+    const Path& outline_path() const;
 
     /**
      * SVG++ event for a non drawn movement in a shape path.
@@ -145,6 +151,11 @@ ShapeContext<Exporter>::ShapeContext(ParentContext& parent)
     : GraphicsElementContext<Exporter>{parent} {}
 
 template <class Exporter>
+const Path& ShapeContext<Exporter>::outline_path() const {
+    return path_;
+}
+
+template <class Exporter>
 void ShapeContext<Exporter>::path_move_to(
     double x, double y, svgpp::tag::coordinate::absolute /*unused*/) {
     path_.push_command(MoveCommand{{x, y}});
@@ -182,12 +193,10 @@ void ShapeContext<Exporter>::on_exit_element() {
 
     if (!fill_fragment_iri_.empty()) {
         auto referenced_node = this->document_.find_by_id(fill_fragment_iri_);
-        PatternPseudoContext<Exporter> context{
-            *this, this->exporter_, this->viewport_, this->to_root(), path_};
         DocumentTraversal::load_referenced_element<
             svgpp::expected_elements<ExpectedElements>,
             svgpp::processed_elements<ProcessedElements>>::load(referenced_node,
-                                                                context);
+                                                                *this);
     }
 
     if (stroke_) {

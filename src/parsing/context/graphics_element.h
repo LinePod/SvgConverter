@@ -68,13 +68,21 @@ class GraphicsElementContext : public BaseContext, public TransformableContext {
      * used for them.
      */
     Exporter inner_exporter() const;
+
+    /**
+     * Provides the viewport for child elements.
+     *
+     * Because only <svg> elements create a new viewport, this default can be
+     * used for all other cases.
+     */
+    const Viewport& inner_viewport() const;
 };
 
 template <class Exporter>
 GraphicsElementContext<Exporter>::GraphicsElementContext(
     const SvgDocument& document, spdlog::logger& logger, Exporter exporter,
     const Viewport& viewport, const Transform& to_root)
-    : BaseContext(document, logger),
+    : BaseContext{document, logger},
       TransformableContext{to_root},
       exporter_{exporter},
       viewport_{viewport} {}
@@ -95,6 +103,11 @@ const LengthFactory& GraphicsElementContext<Exporter>::length_factory() const {
 template <class Exporter>
 Exporter GraphicsElementContext<Exporter>::inner_exporter() const {
     return exporter_;
+}
+
+template <class Exporter>
+const Viewport& GraphicsElementContext<Exporter>::inner_viewport() const {
+    return viewport_;
 }
 
 #endif  // SVG_CONVERTER_PARSING_CONTEXT_GRAPHICS_ELEMENT_H_

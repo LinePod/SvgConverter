@@ -11,7 +11,6 @@
 #include "../viewport.h"
 #include "base.h"
 #include "shape.h"
-#include "transformable.h"
 
 namespace detail {
 
@@ -75,18 +74,8 @@ Vector from_clipper_point(ClipperLib::IntPoint point);
  * use the same pattern, it is parsed once for each shape.
  */
 template <class Exporter>
-class PatternContext : public BaseContext, public TransformableContext {
+class PatternContext : public BaseContext<Exporter> {
  private:
-    /**
-     * Exporter to export the final tiled and clipped pattern to.
-     */
-    Exporter exporter_;
-
-    /**
-     * Viewport of the shape being filled with this pattern.
-     */
-    const Viewport& shape_viewport_;
-
     /**
      * Outline of the shape to fill with this pattern.
      *
@@ -108,22 +97,47 @@ class PatternContext : public BaseContext, public TransformableContext {
 
  public:
     template <class ParentExporter>
-    explicit PatternContext(const ShapeContext<ParentExporter>& shape_context);
+    explicit PatternContext(ShapeContext<ParentExporter>& shape_context);
 
-    const LengthFactory& length_factory() const;
+    /**
+     * Used by `BaseContext` to select the viewport for child elements.
+     */
+    const Viewport& inner_viewport() const {
+        // <pattern> elements don't actually create a new viewport, percentages
+        // are relative to the viewport of the <svg> element the <pattern> is
+        // defined in. Right now they are interpreted as relative to the
+        // viewport of the referencing element, which is an open bug.
+        return this->viewport();
+    }
 
-    detail::PatternExporter inner_exporter();
+    /**
+     * Used by `BaseContext` to select the exporter for child elements.
+     */
+    detail::PatternExporter inner_exporter() {
+        return detail::PatternExporter{pattern_paths_};
+    }
+
+    /**
+     * Whether child elements should be processed.
+     */
+    bool process_children() const { return size_ != boost::none; }
 
     /**
      * SVG++ event reporting x, y, width and height properties.
      */
     void set_viewport(double /*unused*/, double /*unused*/, double width,
-                      double height);
+                      double height) {
+        // Scaling and translation due to x, y, width, height and viewBox is
+        // handled by SVG++ due to the viewport policy `as_transform`
+        size_ = Vector{width, height};
+    }
 
     /**
      * SVG++ event reporting the viewbox size set by the `viewbox` attribute.
      */
-    void set_viewbox_size(double width, double height);
+    void set_viewbox_size(double width, double height) {
+        size_ = Vector{width, height};
+    }
 
     /**
      * SVG++ event reporting viewport width and/or height being set to 0.
@@ -131,65 +145,20 @@ class PatternContext : public BaseContext, public TransformableContext {
      * The SVG spec defines that the content rendering should be disabled in
      * this case.
      */
-    void disable_rendering();
+    void disable_rendering() { size_ = boost::none; }
 
+    /**
+     * SVG++ event fired when the element has been fully processed.
+     */
     void on_exit_element();
-
-    /**
-     * Used by the `GraphicsElementContext(const ParentContext&)` constructor.
-     * @return Viewport for child elements.
-     */
-    const Viewport& inner_viewport() const;
-
-    /**
-     * Disable processing children if rendering is disabled.
-     */
-    bool process_children() const;
 };
 
 template <class Exporter>
 template <class ParentExporter>
 PatternContext<Exporter>::PatternContext(
-    const ShapeContext<ParentExporter>& shape_context)
-    : BaseContext{shape_context},
-      TransformableContext{shape_context.to_root()},
-      // Pattern viewports have a default size of 0 x 0
-      exporter_{shape_context.inner_exporter()},
-      shape_viewport_{shape_context.inner_viewport()},
+    ShapeContext<ParentExporter>& shape_context)
+    : BaseContext<Exporter>{shape_context},
       clipping_path_{shape_context.outline_path()} {}
-
-template <class Exporter>
-const LengthFactory& PatternContext<Exporter>::length_factory() const {
-    // Used for the attributes width/height/x/y, which should be resolved in the
-    // referencing elements viewport (for things like percentages).
-    return shape_viewport_.length_factory();
-}
-
-template <class Exporter>
-detail::PatternExporter PatternContext<Exporter>::inner_exporter() {
-    return detail::PatternExporter{pattern_paths_};
-}
-
-template <class Exporter>
-void PatternContext<Exporter>::set_viewport(double /*unused*/,
-                                            double /*unused*/, double width,
-                                            double height) {
-    // Scaling and translation due to x, y, width, height and viewBox is
-    // handled by SVG++ due to the viewport policy `as_transform`
-    size_ = Vector{width, height};
-}
-
-template <class Exporter>
-void PatternContext<Exporter>::set_viewbox_size(double width, double height) {
-    // Scaling and translation due to x, y, width, height and viewBox is
-    // handled by SVG++ due to the viewport policy `as_transform`
-    size_ = Vector{width, height};
-}
-
-template <class Exporter>
-void PatternContext<Exporter>::disable_rendering() {
-    size_ = boost::none;
-}
 
 template <class Exporter>
 void PatternContext<Exporter>::on_exit_element() {
@@ -198,7 +167,7 @@ void PatternContext<Exporter>::on_exit_element() {
     }
 
     auto offsets =
-        detail::compute_tiling_offsets(*size_, to_root(), clipping_path_);
+        detail::compute_tiling_offsets(*size_, this->to_root(), clipping_path_);
     ClipperLib::PolyTree poly_tree =
         detail::clip_tiled_pattern(clipping_path_, pattern_paths_, offsets);
 
@@ -218,18 +187,8 @@ void PatternContext<Exporter>::on_exit_element() {
                 LineCommand{detail::from_clipper_point(path[i])});
         }
 
-        exporter_.plot(DashedPath{std::move(svg_path)});
+        this->exporter_.plot(DashedPath{std::move(svg_path)});
     }
-}
-
-template <class Exporter>
-const Viewport& PatternContext<Exporter>::inner_viewport() const {
-    return shape_viewport_;
-}
-
-template <class Exporter>
-bool PatternContext<Exporter>::process_children() const {
-    return size_ != boost::none;
 }
 
 #endif  // SVG_CONVERTER_PARSING_CONTEXT_PATTERN_H_

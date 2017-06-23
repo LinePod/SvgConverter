@@ -11,7 +11,8 @@
 #include "../path.h"
 #include "../svgpp.h"
 #include "../traversal.h"
-#include "graphics_element.h"
+#include "../viewport.h"
+#include "base.h"
 
 namespace detail {
 
@@ -47,7 +48,7 @@ void warn_unsupported_paint_server(spdlog::logger& logger,
  * of the path commands, so that we only need to implement a few methods.
  */
 template <class Exporter>
-class ShapeContext : public GraphicsElementContext<Exporter> {
+class ShapeContext : public BaseContext<Exporter> {
  private:
     /**
      * Saved shape path.
@@ -82,105 +83,111 @@ class ShapeContext : public GraphicsElementContext<Exporter> {
      *
      * Used by `PatternContext` to fill this shape with a pattern.
      */
-    const Path& outline_path() const;
+    const Path& outline_path() const { return path_; }
+
+    /**
+     * Used by `BaseContext` to select the viewport for child elements.
+     */
+    const Viewport& inner_viewport() const { return this->viewport(); }
+
+    /**
+     * Used by `BaseContext` to select the exporter for child elements.
+     */
+    Exporter inner_exporter() const { return this->exporter_; }
+
+    /**
+     * Whether child elements should be processed.
+     */
+    bool process_children() const { return true; }
 
     /**
      * SVG++ event for a non drawn movement in a shape path.
      */
     void path_move_to(double x, double y,
-                      svgpp::tag::coordinate::absolute /*unused*/);
+                      svgpp::tag::coordinate::absolute /*unused*/) {
+        path_.push_command(MoveCommand{{x, y}});
+    }
 
     /**
      * SVG++ event for a straight line in a shape path.
      */
     void path_line_to(double x, double y,
-                      svgpp::tag::coordinate::absolute /*unused*/);
+                      svgpp::tag::coordinate::absolute /*unused*/) {
+        path_.push_command(LineCommand{{x, y}});
+    }
 
     /**
      * SVG++ event for a cubic bezier part of a shape path.
      */
     void path_cubic_bezier_to(double x1, double y1, double x2, double y2,
                               double x, double y,
-                              svgpp::tag::coordinate::absolute /*unused*/);
+                              svgpp::tag::coordinate::absolute /*unused*/) {
+        path_.push_command(BezierCommand{{x, y}, {x1, y1}, {x2, y2}});
+    }
 
     /**
      * SVG++ event for a straight line to the start of the current subpath.
      */
-    void path_close_subpath();
+    void path_close_subpath() { path_.push_command(CloseSubpathCommand{}); }
 
     /**
      * SVG++ event after the last shape command.
      */
-    void path_exit();
+    void path_exit() {}
 
+    /**
+     * SVG++ event fired when the element has been fully processed.
+     */
     void on_exit_element();
 
     /**
      * SVG++ event when `stroke-dasharray` is set to an emtpy value.
      */
     void set(svgpp::tag::attribute::stroke_dasharray /*unused*/,
-             svgpp::tag::value::none /*unused*/);
+             svgpp::tag::value::none /*unused*/) {
+        dasharray_.clear();
+    }
 
     /**
      * SVG++ event when `stroke-dasharray` is set to a non empty value.
      */
     template <class Range>
     void set(svgpp::tag::attribute::stroke_dasharray /*unused*/,
-             const Range& range);
+             const Range& range) {
+        dasharray_.assign(boost::begin(range), boost::end(range));
+    }
 
     template <class... Args>
-    void set(svgpp::tag::attribute::stroke tag, Args... args);
+    void set(svgpp::tag::attribute::stroke tag, Args... args) {
+        detail::warn_unsupported_paint_server(this->logger(), tag, args...);
+    }
 
     void set(svgpp::tag::attribute::stroke /*unused*/,
-             svgpp::tag::value::none /*unused*/);
+             svgpp::tag::value::none /*unused*/) {
+        stroke_ = false;
+    }
 
     template <class... Args>
-    void set(svgpp::tag::attribute::fill tag, Args... args);
+    void set(svgpp::tag::attribute::fill tag, Args... args) {
+        detail::warn_unsupported_paint_server(this->logger(), tag, args...);
+    }
 
     void set(svgpp::tag::attribute::fill /*unused*/,
-             svgpp::tag::value::none /*unused*/);
+             svgpp::tag::value::none /*unused*/) {
+        fill_fragment_iri_.clear();
+    }
 
     template <class String>
     void set(svgpp::tag::attribute::fill /*unused*/,
-             svgpp::tag::iri_fragment /*unused*/, const String& id);
+             svgpp::tag::iri_fragment /*unused*/, const String& id) {
+        fill_fragment_iri_.assign(boost::begin(id), boost::end(id));
+    }
 };
 
 template <class Exporter>
 template <class ParentContext>
 ShapeContext<Exporter>::ShapeContext(ParentContext& parent)
-    : GraphicsElementContext<Exporter>{parent} {}
-
-template <class Exporter>
-const Path& ShapeContext<Exporter>::outline_path() const {
-    return path_;
-}
-
-template <class Exporter>
-void ShapeContext<Exporter>::path_move_to(
-    double x, double y, svgpp::tag::coordinate::absolute /*unused*/) {
-    path_.push_command(MoveCommand{{x, y}});
-}
-
-template <class Exporter>
-void ShapeContext<Exporter>::path_line_to(
-    double x, double y, svgpp::tag::coordinate::absolute /*unused*/) {
-    path_.push_command(LineCommand{{x, y}});
-}
-
-template <class Exporter>
-void ShapeContext<Exporter>::path_cubic_bezier_to(
-    double x1, double y1, double x2, double y2, double x, double y,
-    svgpp::tag::coordinate::absolute /*unused*/) {
-    path_.push_command(BezierCommand{{x, y}, {x1, y1}, {x2, y2}});
-}
-
-template <class Exporter>
-void ShapeContext<Exporter>::path_close_subpath() {
-    path_.push_command(CloseSubpathCommand{});
-}
-
-template <class Exporter>
-void ShapeContext<Exporter>::path_exit() {}
+    : BaseContext<Exporter>{parent} {}
 
 template <class Exporter>
 void ShapeContext<Exporter>::on_exit_element() {
@@ -192,7 +199,7 @@ void ShapeContext<Exporter>::on_exit_element() {
     path_.transform(this->to_root());
 
     if (!fill_fragment_iri_.empty()) {
-        auto referenced_node = this->document_.find_by_id(fill_fragment_iri_);
+        auto referenced_node = this->document().find_by_id(fill_fragment_iri_);
         DocumentTraversal::load_referenced_element<
             svgpp::expected_elements<ExpectedElements>,
             svgpp::processed_elements<ProcessedElements>>::load(referenced_node,
@@ -207,54 +214,6 @@ void ShapeContext<Exporter>::on_exit_element() {
             this->to_root().inverse(Eigen::TransformTraits::AffineCompact)};
         this->exporter_.plot(std::move(dashed_path));
     }
-}
-
-template <class Exporter>
-void ShapeContext<Exporter>::set(
-    svgpp::tag::attribute::stroke_dasharray /*unused*/,
-    svgpp::tag::value::none /*unused*/) {
-    dasharray_.clear();
-}
-
-template <class Exporter>
-template <class Range>
-void ShapeContext<Exporter>::set(
-    svgpp::tag::attribute::stroke_dasharray /*unused*/, const Range& range) {
-    dasharray_.assign(boost::begin(range), boost::end(range));
-}
-
-template <class Exporter>
-template <class... Args>
-void ShapeContext<Exporter>::set(svgpp::tag::attribute::stroke tag,
-                                 Args... args) {
-    detail::warn_unsupported_paint_server(this->logger_, tag, args...);
-}
-
-template <class Exporter>
-void ShapeContext<Exporter>::set(svgpp::tag::attribute::stroke /*unused*/,
-                                 svgpp::tag::value::none /*unused*/) {
-    stroke_ = false;
-}
-
-template <class Exporter>
-template <class... Args>
-void ShapeContext<Exporter>::set(svgpp::tag::attribute::fill tag,
-                                 Args... args) {
-    detail::warn_unsupported_paint_server(this->logger_, tag, args...);
-}
-
-template <class Exporter>
-void ShapeContext<Exporter>::set(svgpp::tag::attribute::fill /*unused*/,
-                                 svgpp::tag::value::none /*unused*/) {
-    fill_fragment_iri_.clear();
-}
-
-template <class Exporter>
-template <class String>
-void ShapeContext<Exporter>::set(svgpp::tag::attribute::fill /*unused*/,
-                                 svgpp::tag::iri_fragment /*unused*/,
-                                 const String& id) {
-    fill_fragment_iri_.assign(boost::begin(id), boost::end(id));
 }
 
 #endif  // SVG_CONVERTER_PARSING_CONTEXT_SHAPE_H_

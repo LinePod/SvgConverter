@@ -7,10 +7,8 @@
 // `DocumentTraversal` to lookup referenced elements, which leads to a cyclic
 // dependency without using forward declarations.
 
-class BaseContext;
-
 template <class Exporter>
-class GraphicsElementContext;
+class BaseContext;
 
 template <class Exporter>
 class GContext;

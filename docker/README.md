@@ -1,3 +1,5 @@
+# Docker container
+
 This directory contains a docker container to easily run the converter on all systems.
 
 To build the container and converter, run `./build.sh`.

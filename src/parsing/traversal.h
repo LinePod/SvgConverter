@@ -1,13 +1,26 @@
 #ifndef SVG_CONVERTER_PARSING_TRAVERSAL_H_
 #define SVG_CONVERTER_PARSING_TRAVERSAL_H_
 
+#include <type_traits>
+
+#include <boost/mpl/equal_to.hpp>
+#include <boost/mpl/lambda.hpp>
 #include <boost/mpl/map.hpp>
+#include <boost/mpl/vector.hpp>
 
 #include "../mpl_util.h"
 #include "context/factories.h"
 #include "context/fwd.h"
 #include "svgpp.h"
 #include "viewport.h"
+
+/**
+ * Event that is fired after all viewport attributes have been parsed.
+ *
+ * We use our own event because we don't want the side effects defined for
+ * svgpp::tag::event::after_viewport_attributes.
+ */
+struct AfterViewportAttributesEvent {};
 
 namespace detail {
 
@@ -43,6 +56,10 @@ using ProcessedElements = Concat<
     // Supported structural elements
     mpl::set<element::svg, element::g>>;
 
+using PatternUnitAttributes =
+    mpl::set2<mpl::pair<element::pattern, attrib::patternUnits>,
+              mpl::pair<element::pattern, attrib::patternContentUnits>>;
+
 /**
  * List of attributes which should be processed.
  */
@@ -63,7 +80,10 @@ using ProcessedAttributes = Concat<
     PairAll<svgpp::traits::shape_elements, attrib::stroke>,
 
     // Enable transform attributes for all elements
-    mpl::set<attrib::transform, attrib::patternTransform>>;
+    mpl::set<attrib::transform, attrib::patternTransform>,
+
+    // Enable unit attributes for patterns
+    PatternUnitAttributes>;
 
 /**
  * Policy on how to handle paths (and other elements converted to paths).
@@ -77,12 +97,29 @@ using ProcessedAttributes = Concat<
 using PathPolicy = svgpp::policy::path::minimal;
 
 /**
- * Handle transformations from viewport settings like normal transformations.
+ * Make transforms from viewport into normal transforms, except for patterns.
  *
- * Allows code reuse, because the reason for the transformation (viewport
- * attributes or transform attribute) is not important for us.
+ * SVG++ contains code to translate viewport settings into a scaling plus a
+ * translation, so we use that. Unfortunately, it does not handle patterns
+ * correctly: SVG++ does not handle the attribute patternUnits, which changes
+ * the interpretation of the x, y, width and height attributes. Normally, they
+ * are interpreted as user units, but with patternUnits set to
+ * objectBoundingBox, they are interpreted as factors relative to the bounding
+ * box of the shape that should be filled with the pattern.
+ * This wouldn't be a problem (because that can be adjusted for by simply
+ * applying an additional scaling to the pattern), but patterns also support
+ * the viewBox attribute, the contents of which are always in user units. When
+ * the other attributes are bounding box factors and a viewbox is set, the
+ * layout code produces a wrong layout, which cannot be fixed easily.
+ * To avoid this, we calculate the viewport transformation ourselves for
+ * patterns (reusing some of SVG++s code).
  */
-using ViewportPolicy = svgpp::policy::viewport::as_transform;
+struct ViewportPolicy {
+    static const bool calculate_viewport = true;
+    static const bool calculate_marker_viewport = true;
+    static const bool calculate_pattern_viewport = false;
+    static const bool viewport_as_transform = true;
+};
 
 /**
  * Obtain the length factory for length conversions from the context instance.
@@ -103,6 +140,31 @@ struct LengthPolicy {
     }
 };
 
+/**
+ * Controls attribute processing.
+ *
+ * We use the default settings but add some ordered processing of attributes
+ * for <pattern>s, to enable our custom fixed viewport calculation (see
+ * ViewportPolicy for why this is needed). We add an event after all viewport
+ * attributes have been parsed, so that the viewport can be calculated. This is
+ * needed to decide whether children elements should be parsed (compare
+ * DocumentTraversalControlPolicy).
+ */
+struct AttributeTraversalPolicy
+    : svgpp::policy::attribute_traversal::default_policy {
+    struct get_priority_attributes_by_element {
+        template <class ElementTag>
+        using apply = mpl::if_<
+            std::is_same<ElementTag, element::pattern>,
+            typename mpl::vector<
+                attrib::x, attrib::y, attrib::width, attrib::height,
+                attrib::viewBox, attrib::preserveAspectRatio,
+                attrib::patternUnits, attrib::patternContentUnits,
+                svgpp::notify_context<AfterViewportAttributesEvent>>::type,
+            mpl::empty_sequence>;
+    };
+};
+
 }  // namespace detail
 
 /**
@@ -113,6 +175,7 @@ using DocumentTraversal = svgpp::document_traversal<
     svgpp::processed_attributes<detail::ProcessedAttributes>,
     svgpp::document_traversal_control_policy<
         detail::DocumentTraversalControlPolicy>,
+    svgpp::attribute_traversal_policy<detail::AttributeTraversalPolicy>,
     svgpp::context_factories<ChildContextFactories>,
     svgpp::path_policy<detail::PathPolicy>,
     svgpp::length_policy<detail::LengthPolicy>,

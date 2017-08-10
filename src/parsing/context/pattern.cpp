@@ -1,5 +1,6 @@
 #include "pattern.h"
 
+#include <boost/variant.hpp>
 #include <eigen3/Eigen/SVD>
 
 #include <cstdint>
@@ -76,6 +77,42 @@ class DualLambdaPolylineVisitor {
 };
 
 /**
+ * Visitor that calculates the correct viewbox from attributes.
+ *
+ * Basically a copy of `collect_viewbox_adapter::options_visitor` from
+ * svgpp/adapter/viewport.hpp.
+ */
+class ViewboxVisitor
+    : public boost::static_visitor<std::tuple<Vector, Vector>> {
+ private:
+    const Rect& viewbox_;
+    double viewport_width_;
+    double viewport_height_;
+
+ public:
+    ViewboxVisitor(const Rect& viewbox, double viewport_width,
+                   double viewport_height)
+        : viewbox_(viewbox),
+          viewport_width_(viewport_width),
+          viewport_height_(viewport_height) {}
+
+    template <class AlignTag, class MeetOrSliceTag>
+    std::tuple<Vector, Vector> operator()(
+        const AlignTag& align_tag,
+        const MeetOrSliceTag& meet_or_slice_tag) const {
+        Vector translate;
+        Vector scale;
+        Vector viewbox_pos = viewbox_.min();
+        Vector viewbox_size = viewbox_.sizes();
+        svgpp::calculate_viewbox_transform<double>::calculate(
+            viewport_width_, viewport_height_, viewbox_pos.x(), viewbox_pos.y(),
+            viewbox_size.x(), viewbox_size.y(), align_tag, meet_or_slice_tag,
+            translate.x(), translate.y(), scale.x(), scale.y());
+        return std::make_tuple(translate, scale);
+    }
+};
+
+/**
  * Creates a `DualLambdaPolylineVisitor` with perfect forwarding.
  */
 template <class PointFunc, class OnEndFunc>
@@ -83,6 +120,79 @@ DualLambdaPolylineVisitor<PointFunc, OnEndFunc> make_dual_lambda_visitor(
     PointFunc&& point_func, OnEndFunc&& on_end_func) {
     return {std::forward<PointFunc>(point_func),
             std::forward<OnEndFunc>(on_end_func)};
+}
+
+boost::optional<std::tuple<Transform, Vector>> detail::calculate_pattern_layout(
+    const PatternLayoutAttributes& attribs, Vector bbox_size,
+    const Viewport& viewport) {
+// This code is very closely modeled after SVG++s own code in
+// svgpp/adapter/viewport.hpp.
+
+// We keep the float comparisons to stay equivalent to SVG++'s code
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
+    namespace length_units = svgpp::tag::length_units;
+    namespace length_dimension = svgpp::tag::length_dimension;
+
+    auto&& length_factory = viewport.length_factory();
+    Transform transform = Transform::Identity();
+    Vector size{0, 0};
+
+    double default_x = length_factory.create_length(0, length_units::none{});
+    double default_y = length_factory.create_length(0, length_units::none{});
+    double default_width = length_factory.create_length(
+        100, length_units::percent{}, length_dimension::width{});
+    double default_height = length_factory.create_length(
+        100, length_units::percent{}, length_dimension::height{});
+
+    double viewport_x = attribs.x.value_or(default_x);
+    double viewport_y = attribs.y.value_or(default_y);
+    double viewport_width = attribs.width.value_or(default_width);
+    double viewport_height = attribs.height.value_or(default_height);
+
+    if (viewport_width < 0 || viewport_height < 0) {
+        // TODO(David): Handle using normal SVG++ error handling
+        return boost::none;
+    }
+
+    if (viewport_width == 0 || viewport_height == 0) {
+        return boost::none;
+    }
+
+    // Added handling for patternUnits
+    if (attribs.pattern_units == UnitType::kObjectBoundingBox) {
+        viewport_x *= bbox_size.x();
+        viewport_y *= bbox_size.y();
+        viewport_width *= bbox_size.x();
+        viewport_height *= bbox_size.y();
+    }
+
+    transform.pretranslate(Vector{viewport_x, viewport_y});
+
+    if (attribs.viewbox) {
+        auto&& viewbox = *attribs.viewbox;
+        Vector viewbox_size = viewbox.sizes();
+        if (viewbox_size.x() < 0 || viewbox_size.y() < 0) {
+            // TODO(David): Handle using normal SVG++ error handling
+            return boost::none;
+        }
+
+        if (viewbox_size.x() == 0 || viewbox_size.y() == 0) {
+            return boost::none;
+        }
+
+        Vector translate;
+        Vector scale;
+        std::tie(translate, scale) = boost::apply_visitor(
+            ViewboxVisitor{viewbox, viewport_width, viewport_height},
+            attribs.align, attribs.meet_or_slice);
+        transform.pretranslate(translate).prescale(scale);
+        viewport_width = viewbox_size.x();
+        viewport_height = viewbox_size.y();
+    }
+
+    return std::make_tuple(transform, Vector{viewport_width, viewport_height});
+#pragma clang diagnostic pop
 }
 
 std::vector<Vector> detail::compute_tiling_offsets(const Vector& pattern_size,

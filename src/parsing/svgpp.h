@@ -14,6 +14,11 @@
 #define SVGPP_USE_EXTERNAL_COLOR_PARSER
 #define SVGPP_USE_EXTERNAL_LENGTH_PARSER
 
+// Allow for more named template arguments to be passed to SVG++'s
+// document_traversal class. Should ideally be defined before any boost import
+// in any cpp file, but redefining it here works as well.
+#define BOOST_PARAMETER_MAX_ARITY 10
+
 #include <libxml/parser.h>
 #include <svgpp/policy/xml/libxml2.hpp>
 #include <svgpp/svgpp.hpp>

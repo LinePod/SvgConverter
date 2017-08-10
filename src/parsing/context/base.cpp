@@ -13,7 +13,7 @@ void detail::BaseContextExporterless::transform_matrix(
     Transform transform;
     // clang-format off
     transform.matrix() << matrix[0], matrix[2], matrix[4],
-            matrix[1], matrix[3], matrix[5];
+                          matrix[1], matrix[3], matrix[5];
     // clang-format on
     to_root_ = to_root_ * transform;
 }

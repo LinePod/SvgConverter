@@ -1,13 +1,17 @@
 #ifndef SVG_CONVERTER_PARSING_CONTEXT_PATTERN_H_
 #define SVG_CONVERTER_PARSING_CONTEXT_PATTERN_H_
 
+#include <tuple>
 #include <vector>
 
+#include <boost/optional.hpp>
+#include <boost/variant.hpp>
 #include <clipper.hpp>
 
 #include "../../math_defs.h"
 #include "../dashes.h"
 #include "../path.h"
+#include "../traversal.h"
 #include "../viewport.h"
 #include "base.h"
 #include "shape.h"
@@ -39,10 +43,71 @@ class PatternExporter {
 };
 
 /**
+ * Values for the patternUnits and patternContentUnits attributes.
+ */
+enum class UnitType { kUserSpaceOnUse, kObjectBoundingBox };
+
+/**
+ * Groups attributes responsible for determining the layout of a <pattern>.
+ */
+struct PatternLayoutAttributes {
+    /**
+     * Value of the attribute x.
+     */
+    boost::optional<double> x = boost::none;
+
+    /**
+     * Value of the attribute y.
+     */
+    boost::optional<double> y = boost::none;
+
+    /**
+     * Value of the attribute width.
+     */
+    boost::optional<double> width = boost::none;
+
+    /**
+     * Value of the attribute height.
+     */
+    boost::optional<double> height = boost::none;
+
+    /**
+     * Viewbox as set by the viewBox attribute.
+     */
+    boost::optional<Rect> viewbox = boost::none;
+
+    boost::variant<svgpp::tag::value::none, svgpp::tag::value::xMinYMin,
+                   svgpp::tag::value::xMinYMid, svgpp::tag::value::xMinYMax,
+                   svgpp::tag::value::xMidYMin, svgpp::tag::value::xMidYMid,
+                   svgpp::tag::value::xMidYMax, svgpp::tag::value::xMaxYMin,
+                   svgpp::tag::value::xMaxYMid, svgpp::tag::value::xMaxYMax>
+        align = svgpp::tag::value::xMidYMid{};
+
+    boost::variant<svgpp::tag::value::meet, svgpp::tag::value::slice>
+        meet_or_slice = svgpp::tag::value::meet{};
+
+    UnitType pattern_units = UnitType::kObjectBoundingBox;
+};
+
+/**
+ * Calculate the layout of a pattern.
+ *
+ * @param attribs Collected attributes set on the pattern element.
+ * @param bbox_size Bounding box of the shape being tiled.
+ * @param viewport Viewport to use for resolving units.
+ * @return Transform to apply to the to_root transform as well as the size of
+ *         the pattern in the pattern local coordinate system. None, if
+ *         rendering should be disabled.
+ */
+boost::optional<std::tuple<Transform, Vector>> calculate_pattern_layout(
+    const PatternLayoutAttributes& attribs, Vector bbox_size,
+    const Viewport& viewport);
+
+/*
  * Generate a tiling for a pattern to completely fill the given clipping path.
  *
- * @param pattern_size Size of the pattern rectangle in the coordinate system it
- *                     is defined in.
+ * @param pattern_size Size of the pattern rectangle in the coordinate system
+ *                     established by to_root.
  * @param to_root Transform to the root coordinate system.
  * @param clipping_path Path in global coordinates that should be completely
  *                      tiled.
@@ -89,11 +154,40 @@ class PatternContext : public BaseContext<Exporter> {
     std::vector<DashedPath> pattern_paths_;
 
     /**
-     * Size of the pattern as set by `width` and `height` or by `viewBox`.
+     * Describes how the lengths in the contained shapes are interpreted.
      *
-     * `none` if rendering was disabled via a width/height of 0.
+     * Set by the `patternContentUnits` attribute.
+     */
+    detail::UnitType pattern_content_units_ = detail::UnitType::kUserSpaceOnUse;
+
+    /**
+     * Collected layout attributes.
+     */
+    detail::PatternLayoutAttributes layout_attribs_;
+
+    /**
+     * Size of the pattern as set by the viewport and/or viewbox.
+     *
+     * Set after all viewport attributes have been parsed and before any other
+     * attributes/children are parsed. See AttributeTraversalControlPolicy in
+     * traversal.h for more details.
+     *
+     * If patternUnits="objectBoundingBox", this size does *not* contain the
+     * upscaling by the size of the bounding box.
      */
     boost::optional<Vector> size_ = boost::none;
+
+    /**
+     * Reports a transformation like SVG++ would.
+     *
+     * Used for our custom parsing of the viewport attributes. See
+     * ViewportPolicy in traversal.h for why we need that.
+     */
+    void report_transform(const Transform& transform) {
+        this->transform_matrix(boost::array<double, 6>{
+            {transform(0, 0), transform(1, 0), transform(0, 1), transform(1, 1),
+             transform(0, 2), transform(1, 2)}});
+    }
 
  public:
     template <class ParentExporter>
@@ -118,34 +212,103 @@ class PatternContext : public BaseContext<Exporter> {
     }
 
     /**
+     * Event send after all viewport attributes have been parsed.
+     *
+     * Send before any other attributes/children have been parsed.
+     */
+    bool notify(AfterViewportAttributesEvent /*unused*/);
+
+    /**
      * Whether child elements should be processed.
      */
     bool process_children() const { return size_ != boost::none; }
 
     /**
-     * SVG++ event reporting x, y, width and height properties.
+     * SVG++ event reporting the value of the attribute x.
      */
-    void set_viewport(double /*unused*/, double /*unused*/, double width,
-                      double height) {
-        // Scaling and translation due to x, y, width, height and viewBox is
-        // handled by SVG++ due to the viewport policy `as_transform`
-        size_ = Vector{width, height};
+    void set(svgpp::tag::attribute::x /*unused*/, double value) {
+        layout_attribs_.x = value;
     }
 
     /**
-     * SVG++ event reporting the viewbox size set by the `viewbox` attribute.
+     * SVG++ event reporting the value of the attribute y.
      */
-    void set_viewbox_size(double width, double height) {
-        size_ = Vector{width, height};
+    void set(svgpp::tag::attribute::y /*unused*/, double value) {
+        layout_attribs_.y = value;
     }
 
     /**
-     * SVG++ event reporting viewport width and/or height being set to 0.
-     *
-     * The SVG spec defines that the content rendering should be disabled in
-     * this case.
+     * SVG++ event reporting the value of the attribute width.
      */
-    void disable_rendering() { size_ = boost::none; }
+    void set(svgpp::tag::attribute::width /*unused*/, double value) {
+        layout_attribs_.width = value;
+    }
+
+    /**
+     * SVG++ event reporting the value of the attribute height.
+     */
+    void set(svgpp::tag::attribute::height /*unused*/, double value) {
+        layout_attribs_.height = value;
+    }
+
+    /**
+     * SVG++ event reporting the value of the attribute viewBox.
+     */
+    void set(svgpp::tag::attribute::viewBox /*unused*/, double x, double y,
+             double width, double height) {
+        Vector min{x, y};
+        layout_attribs_.viewbox = Rect{min, min + Vector{width, height}};
+    }
+
+    /**
+     * SVG++ event reporting the value of the attribute viewBox.
+     */
+    void set(svgpp::tag::attribute::preserveAspectRatio /*unused*/,
+             bool /*unused*/, svgpp::tag::value::none align) {
+        layout_attribs_.align = align;
+    }
+
+    /**
+     * SVG++ event reporting the value of the attribute viewBox.
+     */
+    template <class AlignTag, class MeetOrSliceTag>
+    void set(svgpp::tag::attribute::preserveAspectRatio /*unused*/,
+             bool /*unused*/, AlignTag align, MeetOrSliceTag meet_or_slice) {
+        layout_attribs_.align = align;
+        layout_attribs_.meet_or_slice = meet_or_slice;
+    }
+
+    /**
+     * SVG++ event reporting the value of the attribute patternUnits.
+     */
+    void set(svgpp::tag::attribute::patternUnits /*unused*/,
+             svgpp::tag::value::userSpaceOnUse /*unused*/) {
+        layout_attribs_.pattern_units = detail::UnitType::kUserSpaceOnUse;
+    }
+
+    /**
+     * SVG++ event reporting the value of the attribute patternUnits.
+     */
+    void set(svgpp::tag::attribute::patternUnits /*unused*/,
+             svgpp::tag::value::objectBoundingBox /*unused*/) {
+        layout_attribs_.pattern_units = detail::UnitType::kObjectBoundingBox;
+    }
+
+    /**
+     * SVG++ event reporting the value of the attribute patternUnits.
+     */
+    void set(svgpp::tag::attribute::patternContentUnits /*unused*/,
+             svgpp::tag::value::userSpaceOnUse /*unused*/) {
+        pattern_content_units_ = detail::UnitType::kUserSpaceOnUse;
+    }
+
+    /**
+     * SVG++ event reporting the value of the attribute patternContentUnits.
+     */
+    void set(svgpp::tag::attribute::patternContentUnits /*unused*/,
+             svgpp::tag::value::objectBoundingBox /*unused*/) {
+        pattern_content_units_ = detail::UnitType::kObjectBoundingBox;
+    }
 
     /**
      * SVG++ event fired when the element has been fully processed.
@@ -159,6 +322,30 @@ PatternContext<Exporter>::PatternContext(
     ShapeContext<ParentExporter>& shape_context)
     : BaseContext<Exporter>{shape_context},
       clipping_path_{shape_context.outline_path()} {}
+
+template <class Exporter>
+bool PatternContext<Exporter>::notify(AfterViewportAttributesEvent /*unused*/) {
+    // Calculate bounding box of the shape being filled
+    Rect bbox;
+    clipping_path_.to_polylines([&bbox](Vector start_point) {
+        bbox.extend(start_point);
+        return [&bbox](Vector point) { bbox.extend(point); };
+    });
+
+    auto&& result = detail::calculate_pattern_layout(
+        layout_attribs_, bbox.sizes(), this->viewport());
+    if (result) {
+        report_transform(std::get<Transform>(*result));
+        size_ = std::get<Vector>(*result);
+    }
+
+    if (pattern_content_units_ == detail::UnitType::kObjectBoundingBox) {
+        report_transform(Transform{Eigen::Scaling(bbox.sizes())});
+        size_ = (size_->array() / bbox.sizes().array()).matrix();
+    }
+
+    return true;
+}
 
 template <class Exporter>
 void PatternContext<Exporter>::on_exit_element() {
